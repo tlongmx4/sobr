@@ -4,10 +4,70 @@
 // Get a free hosted Postgres database in seconds: `npx create-db`
 
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum SobrietyStatus {
+  SOBER
+  IM_NOT
+  CUTTING_BACK
+  THINKING_ABOUT_IT
+  SUPPORTING_SOMEONE
+  EXPLORING
+  PREFER_NOT_TO_SAY
+}
+
+enum FrameworkPreference {
+  BIBLE
+  TWELVE_STEP
+  BOTH
+  NEITHER
+}
+
+enum ChatRole {
+  USER
+  ASSISTANT
+}
+
+model User {
+  id String @id @default(cuid())
+  email String @unique
+  passwordHash String
+  name String
+  preferredName String?
+  username String @unique
+  hobbies String[]
+  substances String[]
+  sobrietyStatus SobrietyStatus @default(EXPLORING)
+  sobrietyDate DateTime?
+  frameworkPreference FrameworkPreference @default(NEITHER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  checkIns CheckIn[]
+  chatMessages ChatMessage[]
+}
+
+model CheckIn {
+  id String @id @default(cuid())
+  userId String 
+  user User @relation(fields: [userId], references: [id])
+  moodRating Int // 1-5 
+  energyRating Int // 1-5 
+  cravingRating Int? // 1-5, optional
+  journalEntry String? // free text, optional
+  createdAt DateTime @default(now())
+}
+
+model ChatMessage {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id])
+  role ChatRole
+  content String
+  createdAt DateTime @default(now())
 }
