@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { prisma } from '@/lib/prisma';
+import 'dotenv/config';
 
 export async function POST(request: Request) {
   try {
@@ -30,6 +31,10 @@ export async function POST(request: Request) {
         { status: 401 }
       );
     }
+
+    console.log('JWT_SECRET exists:', !!process.env.JWT_SECRET);
+    console.log('JWT_SECRET value:', process.env.JWT_SECRET?.substring(0, 5));
+    console.log('ALL ENV KEYS:', Object.keys(process.env).filter(k => k.includes('JWT') || k.includes('DATABASE')));
 
     const token = jwt.sign(
       { userId: user.id, email: user.email },
