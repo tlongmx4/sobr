@@ -41,6 +41,31 @@ const updateUserSchema = z.object({
   frameworkPreference: frameworkPreferenceSchema.optional(),
 });
 
+export async function GET(request: Request) {
+    const authHeader = request.headers.get('Authorization');
+    const token = authHeader?.replace('Bearer ', '');
+
+    if (!token) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const decoded = verifyToken(token);
+    if (!decoded) {
+        return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
+    }
+
+    const user = await prisma.user.findUnique({
+        where: { id: decoded.userId },
+        omit: { passwordHash: true },
+    });
+
+    if (!user) {
+        return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    return NextResponse.json(user);
+}
+
 export async function POST(request: Request) {
     const body = await request.json();
     const parsed = createUserSchema.safeParse(body);
@@ -52,11 +77,30 @@ export async function POST(request: Request) {
     const { password, ...rest } = parsed.data;
     const passwordHash = await bcrypt.hash(password, 10);
 
-    const user = await prisma.user.create({
-        data: { ...rest, passwordHash },
-    });
+    try {
+        const user = await prisma.user.create({
+            data: { ...rest, passwordHash },
+        });
 
-    return NextResponse.json(user, { status: 201 });
+        return NextResponse.json(user, { status: 201 });
+    } catch (error: unknown) {
+        if (
+            typeof error === 'object' &&
+            error !== null &&
+            'code' in error &&
+            (error as { code: string }).code === 'P2002'
+        ) {
+            const target = (error as { meta?: { target?: string[] } }).meta?.target;
+            if (target?.includes('email')) {
+                return NextResponse.json({ error: 'Email already in use' }, { status: 409 });
+            }
+            if (target?.includes('username')) {
+                return NextResponse.json({ error: 'Username already taken' }, { status: 409 });
+            }
+            return NextResponse.json({ error: 'Account already exists' }, { status: 409 });
+        }
+        throw error;
+    }
 }
 
 export async function PATCH(request: Request) {
