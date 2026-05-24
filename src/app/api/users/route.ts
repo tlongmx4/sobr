@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { verifyToken } from '@/lib/auth';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs'
 import { SobrietyStatus, FrameworkPreference } from "@prisma/client";
@@ -28,7 +29,6 @@ const createUserSchema = z.object({
 });
 
 const updateUserSchema = z.object({
-  id: z.string(),
   email: emailSchema.optional(),
   name: nameSchema.optional(),
   username: usernameSchema.optional(),
@@ -60,6 +60,18 @@ export async function POST(request: Request) {
 }
 
 export async function PATCH(request: Request) {
+    const authHeader = request.headers.get('Authorization');
+    const token = authHeader?.replace('Bearer ', '');
+
+    if (!token) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const decoded = verifyToken(token);
+    if (!decoded) {
+        return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
+    }
+
     const body = await request.json();
     const parsed = updateUserSchema.safeParse(body);
 
@@ -67,23 +79,30 @@ export async function PATCH(request: Request) {
         return NextResponse.json({ error: parsed.error.issues }, { status: 400 });
     }
 
-    const { id, ...data } = parsed.data;
-    const user = await prisma.user.update({ where: { id }, data });
-    return NextResponse.json(user);     
-}
+    const { password, ...rest } = parsed.data;
+    const data: Record<string, unknown> = { ...rest };
 
-const deleteUserSchema = z.object({
-  id: z.string(),
-});
-
-export async function DELETE(request: Request) {
-    const body = await request.json();
-    const parsed = deleteUserSchema.safeParse(body);
-
-    if (!parsed.success) {
-        return NextResponse.json({ error: parsed.error.issues }, { status: 400 });
+    if (password) {
+        data.passwordHash = await bcrypt.hash(password, 10);
     }
 
-    const user = await prisma.user.delete({ where: { id: parsed.data.id } });
+    const user = await prisma.user.update({ where: { id: decoded.userId }, data });
+    return NextResponse.json(user);
+}
+
+export async function DELETE(request: Request) {
+    const authHeader = request.headers.get('Authorization');
+    const token = authHeader?.replace('Bearer ', '');
+
+    if (!token) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const decoded = verifyToken(token);
+    if (!decoded) {
+        return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
+    }
+
+    const user = await prisma.user.delete({ where: { id: decoded.userId } });
     return NextResponse.json(user);
 }
