@@ -80,6 +80,7 @@ export async function POST(request: Request) {
     try {
         const user = await prisma.user.create({
             data: { ...rest, passwordHash },
+            omit: { passwordHash: true },
         });
 
         return NextResponse.json(user, { status: 201 });
@@ -130,8 +131,31 @@ export async function PATCH(request: Request) {
         data.passwordHash = await bcrypt.hash(password, 10);
     }
 
-    const user = await prisma.user.update({ where: { id: decoded.userId }, data });
-    return NextResponse.json(user);
+    try {
+        const user = await prisma.user.update({
+            where: { id: decoded.userId },
+            data,
+            omit: { passwordHash: true },
+        });
+        return NextResponse.json(user);
+    } catch (error: unknown) {
+        if (
+            typeof error === 'object' &&
+            error !== null &&
+            'code' in error &&
+            (error as { code: string }).code === 'P2002'
+        ) {
+            const target = (error as { meta?: { target?: string[] } }).meta?.target;
+            if (target?.includes('email')) {
+                return NextResponse.json({ error: 'Email already in use' }, { status: 409 });
+            }
+            if (target?.includes('username')) {
+                return NextResponse.json({ error: 'Username already taken' }, { status: 409 });
+            }
+            return NextResponse.json({ error: 'Account already exists' }, { status: 409 });
+        }
+        throw error;
+    }
 }
 
 export async function DELETE(request: Request) {
@@ -147,6 +171,6 @@ export async function DELETE(request: Request) {
         return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
-    const user = await prisma.user.delete({ where: { id: decoded.userId } });
-    return NextResponse.json(user);
+    await prisma.user.delete({ where: { id: decoded.userId } });
+    return NextResponse.json({ success: true });
 }
