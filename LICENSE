@@ -1,0 +1,33 @@
+Copyright (c) 2026 Timothy Long. All rights reserved.
+
+This source code is made publicly available for viewing and reference only.
+
+No license, express or implied, is granted under this notice to any person
+obtaining a copy of this software or associated documentation files (the
+"Software") to use, copy, modify, merge, publish, distribute, sublicense,
+create derivative works of, or sell copies of the Software, in whole or in
+part, without the prior written permission of the copyright holder.
+
+Permitted, without prior permission:
+  - Viewing the source code in a web browser or local clone.
+  - Quoting brief excerpts for the purpose of commentary, review, or
+    academic citation, with attribution.
+
+Prohibited, without prior written permission:
+  - Use of the Software, in whole or in part, in any product, service,
+    or system, whether commercial or non-commercial.
+  - Redistribution of the Software, in whole or in part, in original
+    or modified form.
+  - Use of the Software, or any portion of it, to train, fine-tune,
+    evaluate, or benchmark machine learning models of any kind.
+  - Removal or alteration of this notice from any copy of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL
+THE AUTHOR OR COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING
+FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+DEALINGS IN THE SOFTWARE.
+
+For licensing inquiries, contact: tlongmx4@gmail.com
