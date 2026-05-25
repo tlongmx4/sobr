@@ -15,14 +15,23 @@ export async function GET(request: Request) {
         return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
-    const chatMessage = await prisma.chatMessage.findMany({
-        where: {
-            userId: decoded.userId,
-        },
-        orderBy: {
-            createdAt: 'asc',
-        },
+    const { searchParams } = new URL(request.url);
+    const cursor = searchParams.get('cursor');
+    const limit = Math.min(Number(searchParams.get('limit')) || 50, 100);
+
+    const chatMessages = await prisma.chatMessage.findMany({
+        where: { userId: decoded.userId },
+        orderBy: { createdAt: 'asc' },
+        take: limit + 1,
+        ...(cursor && {
+            cursor: { id: cursor },
+            skip: 1,
+        }),
     });
 
-    return NextResponse.json(chatMessage);
+    const hasMore = chatMessages.length > limit;
+    const messages = hasMore ? chatMessages.slice(0, limit) : chatMessages;
+    const nextCursor = hasMore ? messages[messages.length - 1].id : null;
+
+    return NextResponse.json({ messages, nextCursor });
 }
