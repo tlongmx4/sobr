@@ -1,36 +1,65 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# sobr
 
-## Getting Started
+An AI companion for people navigating sobriety. Not a therapist, not a chatbot — a grounded friend that actually gets it.
 
-First, run the development server:
+Built with Next.js, Prisma, and Claude.
+
+## Features
+
+- **AI chat** — Streaming conversations powered by Claude, personalized with your check-in history and preferences
+- **Daily check-ins** — Track mood, energy, and cravings over time
+- **Framework support** — Biblical, 12-step, both, or secular — adapts to your approach
+- **Crisis handling** — Automatically surfaces crisis resources (988, Crisis Text Line, SAMHSA) when needed
+
+## Tech stack
+
+- **Framework:** Next.js 16 (App Router)
+- **Database:** PostgreSQL + Prisma ORM
+- **AI:** Anthropic Claude (streaming)
+- **Auth:** JWT (bcrypt + jose)
+- **Validation:** Zod
+- **UI:** Tailwind CSS + shadcn/ui
+
+## Getting started
+
+### Prerequisites
+
+- Node.js 18+
+- PostgreSQL database
+
+### Setup
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Create a `.env` file:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```
+DATABASE_URL="postgresql://user:password@localhost:5432/sobr"
+JWT_SECRET="your-secret-key"
+ANTHROPIC_API_KEY="your-api-key"
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Run migrations and start the dev server:
 
-## Learn More
+```bash
+npx prisma migrate dev
+npm run dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+Open [http://localhost:3000](http://localhost:3000).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## API routes
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| Method | Route | Auth | Description |
+|--------|-------|------|-------------|
+| POST | `/api/users` | No | Create account |
+| GET | `/api/users` | Yes | Get current user profile |
+| PATCH | `/api/users` | Yes | Update profile |
+| DELETE | `/api/users` | Yes | Delete account |
+| POST | `/api/auth/login` | No | Login, returns JWT |
+| POST | `/api/chat` | Yes | Send message, streams response |
+| GET | `/api/chat-messages` | Yes | Get chat history (paginated) |
+| POST | `/api/check-in` | Yes | Create check-in |
+| GET | `/api/check-in` | Yes | Get check-in history |
