@@ -20,6 +20,19 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
+async function extractErrorMessage(response: Response, fallback: string): Promise<string> {
+    try {
+        const data = await response.json();
+        if (typeof data.error === "string") return data.error;
+        if (Array.isArray(data.error) && data.error[0]?.message) {
+            return data.error[0].message;
+        }
+        return fallback;
+    } catch {
+        return fallback;
+    }
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     "use no memo";
 
@@ -66,7 +79,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         });
 
         if (!response.ok) {
-            throw new Error(`Login failed with status: ${response.status}`);
+            throw new Error(await extractErrorMessage(response, "Login failed"));
         }
 
         const { token, user } = await response.json();
@@ -84,7 +97,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         });
 
         if (!response.ok) {
-            throw new Error(`Signup failed with status: ${response.status}`);
+            throw new Error(await extractErrorMessage(response, "Signup failed"));
         }
 
         await login(email, password);
