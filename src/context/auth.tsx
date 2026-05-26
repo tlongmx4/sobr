@@ -12,6 +12,7 @@ type User = {
 type AuthContextType = {
     user: User | null;
     token: string | null;
+    loading: boolean;
     login: (email: string, password: string) => Promise<void>;
     signup: (name: string, username: string, email: string, password: string) => Promise<void>;
     logout: () => void;
@@ -23,18 +24,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     "use no memo";
 
     const [user, setUser] = useState<User | null>(null);
-    const [token, setToken] = useState<string | null>(() => {
-        if (typeof window !== "undefined") {
-            return localStorage.getItem("token");
-        }
-        return null;
-    });
+    const [token, setToken] = useState<string | null>(null);
+    const [loading, setLoading] = useState(true);
 
     function clearAuth() {
         localStorage.removeItem("token");
         setToken(null);
         setUser(null);
     }
+
+    useEffect(() => {
+        const storedToken = localStorage.getItem("token");
+        if (storedToken) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time SSR-safe hydration from localStorage; the follow-up effect verifies the token
+            setToken(storedToken);
+        } else {
+            setLoading(false);
+        }
+    }, []);
 
     useEffect(() => {
         if (!token) return;
@@ -47,7 +54,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 return res.json();
             })
             .then((data) => setUser(data))
-            .catch(() => clearAuth());
+            .catch(() => clearAuth())
+            .finally(() => setLoading(false));
     }, [token]);
 
     async function login(email: string, password: string): Promise<void> {
@@ -87,7 +95,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     return (
-        <AuthContext.Provider value={{ user, token, login, signup, logout }}>
+        <AuthContext.Provider value={{ user, token, loading, login, signup, logout }}>
             {children}
         </AuthContext.Provider>
     );
