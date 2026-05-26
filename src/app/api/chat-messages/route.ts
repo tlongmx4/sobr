@@ -1,18 +1,11 @@
 import { NextResponse } from "next/server";
-import { verifyToken } from "@/lib/auth";
+import { getCurrentUserId } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(request: Request) {
-    const authHeader = request.headers.get('Authorization');
-    const token = authHeader?.replace('Bearer ', '');
-
-    if (!token) {
+    const userId = await getCurrentUserId();
+    if (!userId) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const decoded = verifyToken(token);
-    if (!decoded) {
-        return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
     const { searchParams } = new URL(request.url);
@@ -20,7 +13,7 @@ export async function GET(request: Request) {
     const limit = Math.min(Number(searchParams.get('limit')) || 50, 100);
 
     const chatMessages = await prisma.chatMessage.findMany({
-        where: { userId: decoded.userId },
+        where: { userId },
         orderBy: { createdAt: 'asc' },
         take: limit + 1,
         ...(cursor && {

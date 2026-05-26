@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { verifyToken } from '@/lib/auth';
+import { getCurrentUserId } from '@/lib/auth';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs'
 import { SobrietyStatus, FrameworkPreference } from "@prisma/client";
@@ -41,21 +41,14 @@ const updateUserSchema = z.object({
   frameworkPreference: frameworkPreferenceSchema.optional(),
 });
 
-export async function GET(request: Request) {
-    const authHeader = request.headers.get('Authorization');
-    const token = authHeader?.replace('Bearer ', '');
-
-    if (!token) {
+export async function GET() {
+    const userId = await getCurrentUserId();
+    if (!userId) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const decoded = verifyToken(token);
-    if (!decoded) {
-        return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
-    }
-
     const user = await prisma.user.findUnique({
-        where: { id: decoded.userId },
+        where: { id: userId },
         omit: { passwordHash: true },
     });
 
@@ -105,16 +98,9 @@ export async function POST(request: Request) {
 }
 
 export async function PATCH(request: Request) {
-    const authHeader = request.headers.get('Authorization');
-    const token = authHeader?.replace('Bearer ', '');
-
-    if (!token) {
+    const userId = await getCurrentUserId();
+    if (!userId) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const decoded = verifyToken(token);
-    if (!decoded) {
-        return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
     const body = await request.json();
@@ -133,7 +119,7 @@ export async function PATCH(request: Request) {
 
     try {
         const user = await prisma.user.update({
-            where: { id: decoded.userId },
+            where: { id: userId },
             data,
             omit: { passwordHash: true },
         });
@@ -158,19 +144,12 @@ export async function PATCH(request: Request) {
     }
 }
 
-export async function DELETE(request: Request) {
-    const authHeader = request.headers.get('Authorization');
-    const token = authHeader?.replace('Bearer ', '');
-
-    if (!token) {
+export async function DELETE() {
+    const userId = await getCurrentUserId();
+    if (!userId) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const decoded = verifyToken(token);
-    if (!decoded) {
-        return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
-    }
-
-    await prisma.user.delete({ where: { id: decoded.userId } });
+    await prisma.user.delete({ where: { id: userId } });
     return NextResponse.json({ success: true });
 }

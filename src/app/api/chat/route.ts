@@ -1,24 +1,20 @@
 import { NextRequest } from "next/server";
 import { anthropic, MODEL } from "@/lib/ai";
 import { buildSystemPrompt } from "@/lib/context";
-import { verifyToken } from "@/lib/auth";
+import { getCurrentUserId } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
 const schema = z.object({ message: z.string().min(1).max(10000) });
 
 export async function POST(req: NextRequest) {
-  const token = req.headers.get("Authorization")?.replace("Bearer ", "");
-  if (!token) return new Response("Unauthorized", { status: 401 });
-
-  const decoded = verifyToken(token);
-  if (!decoded) return new Response("Invalid token", { status: 401 });
+  const userId = await getCurrentUserId();
+  if (!userId) return new Response("Unauthorized", { status: 401 });
 
   const body = await req.json();
   const parsed = schema.safeParse(body);
   if (!parsed.success) return new Response("Bad request", { status: 400 });
 
-  const userId = decoded.userId;
   const { message } = parsed.data;
 
   await prisma.chatMessage.create({
