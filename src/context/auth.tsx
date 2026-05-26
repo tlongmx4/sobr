@@ -11,11 +11,10 @@ type User = {
 
 type AuthContextType = {
     user: User | null;
-    token: string | null;
     loading: boolean;
     login: (email: string, password: string) => Promise<void>;
     signup: (name: string, username: string, email: string, password: string) => Promise<void>;
-    logout: () => void;
+    logout: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -37,39 +36,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     "use no memo";
 
     const [user, setUser] = useState<User | null>(null);
-    const [token, setToken] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
 
-    function clearAuth() {
-        localStorage.removeItem("token");
-        setToken(null);
-        setUser(null);
-    }
-
     useEffect(() => {
-        const storedToken = localStorage.getItem("token");
-        if (storedToken) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time SSR-safe hydration from localStorage; the follow-up effect verifies the token
-            setToken(storedToken);
-        } else {
-            setLoading(false);
-        }
-    }, []);
-
-    useEffect(() => {
-        if (!token) return;
-
-        fetch("/api/users", {
-            headers: { Authorization: `Bearer ${token}` },
-        })
+        fetch("/api/users")
             .then((res) => {
-                if (!res.ok) throw new Error("Invalid token");
+                if (!res.ok) throw new Error("Not authenticated");
                 return res.json();
             })
             .then((data) => setUser(data))
-            .catch(() => clearAuth())
+            .catch(async () => {
+                await fetch("/api/auth/logout", { method: "POST" });
+                setUser(null);
+            })
             .finally(() => setLoading(false));
-    }, [token]);
+    }, []);
 
     async function login(email: string, password: string): Promise<void> {
         const response = await fetch("/api/auth/login", {
@@ -82,10 +63,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             throw new Error(await extractErrorMessage(response, "Login failed"));
         }
 
-        const { token, user } = await response.json();
-
-        localStorage.setItem("token", token);
-        setToken(token);
+        const { user } = await response.json();
         setUser(user);
     }
 
@@ -103,12 +81,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         await login(email, password);
     }
 
-    function logout() {
-        clearAuth();
+    async function logout(): Promise<void> {
+        await fetch("/api/auth/logout", { method: "POST" });
+        setUser(null);
     }
 
     return (
-        <AuthContext.Provider value={{ user, token, loading, login, signup, logout }}>
+        <AuthContext.Provider value={{ user, loading, login, signup, logout }}>
             {children}
         </AuthContext.Provider>
     );
