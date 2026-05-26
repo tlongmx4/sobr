@@ -1,14 +1,17 @@
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { prisma } from '@/lib/prisma';
 import 'dotenv/config';
 
+const SEVEN_DAYS_SECONDS = 60 * 60 * 24 * 7;
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
     const { email, password } = body;
-    
+
     if (!email || !password) {
       return NextResponse.json(
         { error: 'Email and password are required' },
@@ -38,10 +41,17 @@ export async function POST(request: Request) {
       { expiresIn: '7d' }
     );
 
+    (await cookies()).set('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: SEVEN_DAYS_SECONDS,
+    });
+
     return NextResponse.json(
       {
         message: 'Login successful',
-        token,
         user: {
           id: user.id,
           email: user.email,
