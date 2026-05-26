@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import { cookies } from 'next/headers';
 
 export function verifyToken(token: string) {
   try {
@@ -6,4 +7,12 @@ export function verifyToken(token: string) {
   } catch {
     return null;
   }
+}
+
+export async function getCurrentUserId(): Promise<string | null> {
+  const cookieStore = await cookies();
+  const token = cookieStore.get('token')?.value;
+  if (!token) return null;
+  const decoded = verifyToken(token);
+  return decoded?.userId ?? null;
 }
