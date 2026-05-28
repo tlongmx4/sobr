@@ -54,10 +54,10 @@ model User {
 
 model CheckIn {
   id String @id @default(cuid())
-  userId String 
-  user User @relation(fields: [userId], references: [id])
-  moodRating Int // 1-5 
-  energyRating Int // 1-5 
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  moodRating Int // 1-5
+  energyRating Int // 1-5
   cravingRating Int? // 1-5, optional
   journalEntry String? // free text, optional
   createdAt DateTime @default(now())
@@ -66,7 +66,7 @@ model CheckIn {
 model ChatMessage {
   id String @id @default(cuid())
   userId String
-  user User @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   role ChatRole
   content String
   createdAt DateTime @default(now())

@@ -62,7 +62,13 @@ export async function POST(req: NextRequest) {
         });
         controller.close();
       } catch (err) {
-        controller.error(err);
+        console.error('chat stream failed', {
+          name: err instanceof Error ? err.name : 'Unknown',
+        });
+        try {
+          controller.enqueue(encoder.encode('\n\n[connection interrupted]'));
+        } catch {}
+        controller.close();
       }
     },
   });

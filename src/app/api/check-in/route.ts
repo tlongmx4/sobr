@@ -52,7 +52,10 @@ export async function POST(request: Request) {
 
         return NextResponse.json(checkIn, { status: 201 });
     } catch (error) {
-        console.error(error);
+        console.error('check-in POST failed', {
+            name: error instanceof Error ? error.name : 'Unknown',
+            code: (error as { code?: string })?.code,
+        });
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }
