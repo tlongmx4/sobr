@@ -14,6 +14,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useAuth } from "@/context/auth";
+import { CheckInDialog } from "./CheckInDialog";
 
 type DashboardUser = {
   id: string;
@@ -63,6 +64,7 @@ export function Dashboard({ user, initialMessages, todayCheckIn }: Props) {
   const router = useRouter();
   const { logout } = useAuth();
   const [input, setInput] = useState("");
+  const [checkInOpen, setCheckInOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const { messages, sendMessage, status, stop, error } = useChat({
@@ -121,7 +123,10 @@ export function Dashboard({ user, initialMessages, todayCheckIn }: Props) {
       <div className="flex flex-1 overflow-hidden">
         <aside className="hidden w-80 shrink-0 flex-col gap-3 overflow-y-auto border-r bg-muted/30 p-4 md:flex">
           <SobrietyCard user={user} />
-          <CheckInCard todayCheckIn={todayCheckIn} />
+          <CheckInCard
+            todayCheckIn={todayCheckIn}
+            onCheckIn={() => setCheckInOpen(true)}
+          />
           <QuickLinksCard />
         </aside>
 
@@ -185,6 +190,8 @@ export function Dashboard({ user, initialMessages, todayCheckIn }: Props) {
           </form>
         </main>
       </div>
+
+      <CheckInDialog open={checkInOpen} onOpenChange={setCheckInOpen} />
     </div>
   );
 }
@@ -227,7 +234,17 @@ function SobrietyCard({ user }: { user: DashboardUser }) {
   );
 }
 
-function CheckInCard({ todayCheckIn }: { todayCheckIn: TodayCheckIn }) {
+const MOOD_EMOJI = ["😔", "😕", "😐", "🙂", "😄"];
+const ENERGY_EMOJI = ["🥱", "😴", "😐", "🙂", "💪"];
+const CRAVING_EMOJI = ["😌", "🙂", "😐", "😟", "😣"];
+
+function CheckInCard({
+  todayCheckIn,
+  onCheckIn,
+}: {
+  todayCheckIn: TodayCheckIn;
+  onCheckIn: () => void;
+}) {
   return (
     <Card size="sm">
       <CardHeader>
@@ -237,17 +254,27 @@ function CheckInCard({ todayCheckIn }: { todayCheckIn: TodayCheckIn }) {
       </CardHeader>
       <CardContent>
         {todayCheckIn ? (
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             <div className="flex items-center gap-1.5 text-sm">
               <CalendarCheck2 className="size-3.5 text-primary" />
               <span className="text-muted-foreground">Checked in</span>
             </div>
             <div className="grid grid-cols-3 gap-2 pt-1">
-              <Stat label="Mood" value={todayCheckIn.moodRating} />
-              <Stat label="Energy" value={todayCheckIn.energyRating} />
+              <Stat
+                label="Mood"
+                value={MOOD_EMOJI[todayCheckIn.moodRating - 1]}
+              />
+              <Stat
+                label="Energy"
+                value={ENERGY_EMOJI[todayCheckIn.energyRating - 1]}
+              />
               <Stat
                 label="Craving"
-                value={todayCheckIn.cravingRating ?? "—"}
+                value={
+                  todayCheckIn.cravingRating
+                    ? CRAVING_EMOJI[todayCheckIn.cravingRating - 1]
+                    : "—"
+                }
               />
             </div>
           </div>
@@ -256,7 +283,12 @@ function CheckInCard({ todayCheckIn }: { todayCheckIn: TodayCheckIn }) {
             <p className="text-sm text-muted-foreground">
               You haven&apos;t checked in yet today.
             </p>
-            <Button variant="outline" size="sm" disabled className="w-full">
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full"
+              onClick={onCheckIn}
+            >
               Check in
             </Button>
           </div>
@@ -266,11 +298,13 @@ function CheckInCard({ todayCheckIn }: { todayCheckIn: TodayCheckIn }) {
   );
 }
 
-function Stat({ label, value }: { label: string; value: number | string }) {
+function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-md bg-background px-2 py-1.5 text-center ring-1 ring-border">
-      <div className="text-xs text-muted-foreground">{label}</div>
-      <div className="text-sm font-semibold tabular-nums">{value}</div>
+      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+        {label}
+      </div>
+      <div className="text-lg leading-none mt-0.5">{value}</div>
     </div>
   );
 }
