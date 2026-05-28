@@ -1,17 +1,30 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-const publicPaths = ['/login', '/signup'];
+const authOnlyPages = ['/login', '/signup'];
+
+const alwaysPublic = [
+    '/forgot-password',
+    '/reset-password',
+    '/verify-email',
+    '/check-email',
+    '/privacy',
+];
 
 export function proxy(request: NextRequest) {
     const token = request.cookies.get('token');
     const { pathname } = request.nextUrl;
-    const isPublic = publicPaths.includes(pathname);
 
-    if (!token && !isPublic) {
+    if (alwaysPublic.includes(pathname)) {
+        return NextResponse.next();
+    }
+
+    const isAuthOnlyPage = authOnlyPages.includes(pathname);
+
+    if (!token && !isAuthOnlyPage) {
         return NextResponse.redirect(new URL('/login', request.url));
     }
-    if (token && isPublic) {
+    if (token && isAuthOnlyPage) {
         return NextResponse.redirect(new URL('/', request.url));
     }
     return NextResponse.next();

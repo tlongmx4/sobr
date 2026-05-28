@@ -34,9 +34,15 @@ enum ChatRole {
   ASSISTANT
 }
 
+enum TokenType {
+  EMAIL_VERIFICATION
+  PASSWORD_RESET
+}
+
 model User {
   id String @id @default(cuid())
   email String @unique
+  emailVerified DateTime?
   passwordHash String
   name String
   preferredName String?
@@ -46,10 +52,26 @@ model User {
   sobrietyStatus SobrietyStatus @default(EXPLORING)
   sobrietyDate DateTime?
   frameworkPreference FrameworkPreference @default(NEITHER)
+  failedLoginAttempts Int @default(0)
+  lockedUntil DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   checkIns CheckIn[]
   chatMessages ChatMessage[]
+  tokens Token[]
+}
+
+model Token {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String @unique
+  type TokenType
+  expiresAt DateTime
+  usedAt DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([userId, type])
 }
 
 model CheckIn {
