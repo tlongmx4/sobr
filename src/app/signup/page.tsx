@@ -18,10 +18,10 @@ export default function SignupPage() {
     const mutation = useMutation({
         mutationFn: ({ name, username, email, password }: { name: string; username: string; email: string; password: string }) =>
             signup(name, username, email, password),
-        onSuccess: () => {
-            router.push("/");
-    },
-});
+        onSuccess: (_data, vars) => {
+            router.push(`/check-email?email=${encodeURIComponent(vars.email)}`);
+        },
+    });
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();

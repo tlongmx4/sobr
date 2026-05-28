@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUserId } from '@/lib/auth';
+import { createToken, VERIFICATION_TTL_MS } from '@/lib/tokens';
+import { sendVerificationEmail } from '@/lib/email';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs'
 import { SobrietyStatus, FrameworkPreference } from "@prisma/client";
@@ -76,7 +79,27 @@ export async function POST(request: Request) {
             omit: { passwordHash: true },
         });
 
-        return NextResponse.json(user, { status: 201 });
+        try {
+            const token = await createToken({
+                userId: user.id,
+                type: 'EMAIL_VERIFICATION',
+                ttlMs: VERIFICATION_TTL_MS,
+            });
+            await sendVerificationEmail({
+                to: user.email,
+                name: user.preferredName || user.name,
+                token,
+            });
+        } catch (emailError) {
+            console.error('verification email send failed', {
+                name: emailError instanceof Error ? emailError.name : 'Unknown',
+            });
+        }
+
+        return NextResponse.json(
+            { ...user, verificationEmailSent: true },
+            { status: 201 },
+        );
     } catch (error: unknown) {
         if (
             typeof error === 'object' &&
@@ -151,5 +174,6 @@ export async function DELETE() {
     }
 
     await prisma.user.delete({ where: { id: userId } });
+    (await cookies()).delete('token');
     return NextResponse.json({ success: true });
 }
