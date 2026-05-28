@@ -56,7 +56,7 @@ export default function LoginPage() {
             <div className="w-full max-w-md space-y-8">
                 <div>
                     <h2 className="mt-6 text-center font-heading text-3xl font-semibold tracking-tight">
-                        Sign in to sobr
+                        Sign in to sobrandsteady
                     </h2>
                 </div>
 

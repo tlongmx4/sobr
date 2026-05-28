@@ -41,21 +41,21 @@ export async function sendVerificationEmail(opts: {
   token: string;
 }) {
   const link = `${appUrl()}/verify-email?token=${encodeURIComponent(opts.token)}`;
-  const subject = "Verify your sobr account";
+  const subject = "Verify your sobrandsteady account";
   const text = `Hi ${opts.name},
 
-Welcome to sobr. To finish setting up your account, verify your email by opening this link:
+Welcome to sobrandsteady. To finish setting up your account, verify your email by opening this link:
 
 ${link}
 
-This link expires in 24 hours. If you didn't sign up for sobr, you can ignore this email.
+This link expires in 24 hours. If you didn't sign up for sobrandsteady, you can ignore this email.
 
-— sobr`;
+— sobrandsteady`;
   const html = `<p>Hi ${escapeHtml(opts.name)},</p>
-<p>Welcome to sobr. To finish setting up your account, verify your email by clicking the link below:</p>
+<p>Welcome to sobrandsteady. To finish setting up your account, verify your email by clicking the link below:</p>
 <p><a href="${link}">Verify my email</a></p>
-<p>This link expires in 24 hours. If you didn't sign up for sobr, you can ignore this email.</p>
-<p>— sobr</p>`;
+<p>This link expires in 24 hours. If you didn't sign up for sobrandsteady, you can ignore this email.</p>
+<p>— sobrandsteady</p>`;
   await send({ to: opts.to, subject, html, text });
 }
 
@@ -65,21 +65,21 @@ export async function sendPasswordResetEmail(opts: {
   token: string;
 }) {
   const link = `${appUrl()}/reset-password?token=${encodeURIComponent(opts.token)}`;
-  const subject = "Reset your sobr password";
+  const subject = "Reset your sobrandsteady password";
   const text = `Hi ${opts.name},
 
-Someone asked to reset the password for your sobr account. If that was you, open this link to set a new password:
+Someone asked to reset the password for your sobrandsteady account. If that was you, open this link to set a new password:
 
 ${link}
 
 This link expires in 1 hour. If you didn't request a reset, you can ignore this email — your password won't change.
 
-— sobr`;
+— sobrandsteady`;
   const html = `<p>Hi ${escapeHtml(opts.name)},</p>
-<p>Someone asked to reset the password for your sobr account. If that was you, click the link below to set a new password:</p>
+<p>Someone asked to reset the password for your sobrandsteady account. If that was you, click the link below to set a new password:</p>
 <p><a href="${link}">Reset my password</a></p>
 <p>This link expires in 1 hour. If you didn't request a reset, you can ignore this email — your password won't change.</p>
-<p>— sobr</p>`;
+<p>— sobrandsteady</p>`;
   await send({ to: opts.to, subject, html, text });
 }
 

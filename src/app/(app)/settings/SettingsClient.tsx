@@ -61,7 +61,7 @@ export function SettingsClient({ user }: Props) {
         <CardHeader>
           <CardTitle>Profile</CardTitle>
           <CardDescription>
-            How you appear inside sobr.
+            How you appear inside sobrandsteady.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">

@@ -108,7 +108,7 @@ export function Dashboard({ user, initialMessages, todayCheckIn }: Props) {
         <div className="flex items-center gap-2">
           <Sparkles className="size-5 text-primary" />
           <span className="font-heading text-lg font-semibold tracking-tight">
-            sobr
+            sobrandsteady
           </span>
         </div>
         <div className="flex items-center gap-2">

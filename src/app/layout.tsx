@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "sobr",
+  title: "sobrandsteady",
   description: "An AI companion for navigating sobriety.",
 };
 

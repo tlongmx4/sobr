@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "Privacy — sobr",
+  title: "Privacy — sobrandsteady",
 };
 
 export default function PrivacyPage() {
@@ -12,7 +12,7 @@ export default function PrivacyPage() {
           href="/"
           className="font-heading text-lg font-semibold tracking-tight"
         >
-          sobr
+          sobrandsteady
         </Link>
       </header>
 
@@ -28,7 +28,7 @@ export default function PrivacyPage() {
         <div className="mt-10 space-y-8 text-[15px] leading-relaxed">
           <Section title="What we store">
             <p>
-              When you use sobr, we store the account details you give us
+              When you use sobrandsteady, we store the account details you give us
               (name, email, username, hashed password), your sobriety status
               and optional sobriety date, your framework preference, hobbies
               and substance disclosures, your daily check-ins (mood, energy,
@@ -54,14 +54,14 @@ export default function PrivacyPage() {
 
           <Section title="Who can read your data">
             <p>
-              sobr is operated by Tim Long. Right now, the database is
+              sobrandsteady is operated by Tim Long. Right now, the database is
               accessible to me as the operator for maintenance and debugging.
               I do not actively read your conversations, but I have technical
               access to them.
             </p>
             <p>
               As the team grows, we&apos;ll publish our internal access
-              policies. If you want a version of sobr where even the operator
+              policies. If you want a version of sobrandsteady where even the operator
               cannot read your messages, that&apos;s not what V1 is — but
               it&apos;s on the roadmap.
             </p>
@@ -105,12 +105,12 @@ export default function PrivacyPage() {
 
           <Section title="Crisis disclosures">
             <p>
-              sobr is not a crisis service. If you&apos;re in immediate
+              sobrandsteady is not a crisis service. If you&apos;re in immediate
               danger, please contact 988 (Suicide & Crisis Lifeline), text
               HOME to 741741, or call 911.
             </p>
             <p>
-              If you disclose a crisis to sobr, that disclosure is stored in
+              If you disclose a crisis to sobrandsteady, that disclosure is stored in
               the same database as the rest of your conversations. We are
               not a HIPAA-covered healthcare provider, and your conversations
               here do not have the same legal protections as a session with
@@ -159,7 +159,7 @@ export default function PrivacyPage() {
             href="/"
             className="text-muted-foreground hover:text-foreground"
           >
-            ← Back to sobr
+            ← Back to sobrandsteady
           </Link>
         </div>
       </main>

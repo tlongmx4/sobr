@@ -1,6 +1,6 @@
-# sobr
+# sobrandsteady
 
-An AI companion for people navigating sobriety. Not a therapist, not a chatbot — a grounded friend that actually gets it.
+An AI companion app for people navigating sobriety. Not a therapist, not a chatbot — a grounded friend that actually gets it. The AI companion's name is **sobr**.
 
 Built with Next.js, Prisma, and Claude.
 
@@ -8,7 +8,7 @@ Built with Next.js, Prisma, and Claude.
 
 ## Why
 
-Most mental health and recovery apps default to clinical tone, gamification, or daily affirmations that get stale fast. sobr is designed differently: a casual, warm, direct conversational presence that matches the user's emotional register without spiraling with them. It only brings up recovery when the user does — except in crisis moments, where it shifts immediately and clearly.
+Most mental health and recovery apps default to clinical tone, gamification, or daily affirmations that get stale fast. sobrandsteady is designed differently: a casual, warm, direct conversational presence that matches the user's emotional register without spiraling with them. It only brings up recovery when the user does — except in crisis moments, where it shifts immediately and clearly.
 
 ## Features
 
@@ -56,7 +56,7 @@ npm install
 Create a `.env.local` file in the project root:
 
 ```env
-DATABASE_URL="postgresql://user:password@host:5432/sobr"
+DATABASE_URL="postgresql://user:password@host:5432/sobrandsteady"
 JWT_SECRET="<generate a 32+ byte random string>"
 ANTHROPIC_API_KEY="<your Anthropic API key>"
 RESEND_API_KEY="<your Resend API key, optional in dev>"
