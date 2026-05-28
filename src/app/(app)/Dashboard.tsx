@@ -5,6 +5,7 @@ import type { UIMessage } from "ai";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import ReactMarkdown from "react-markdown";
 import { Send, Square, CalendarCheck2, Sparkles, LogOut, Settings as SettingsIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -368,8 +369,36 @@ function MessageBubble({ message }: { message: UIMessage }) {
   }
   return (
     <div className="flex justify-start">
-      <div className="max-w-[85%] rounded-2xl rounded-bl-sm bg-card px-4 py-2.5 text-sm text-card-foreground ring-1 ring-border whitespace-pre-wrap">
-        {text}
+      <div className="max-w-[85%] rounded-2xl rounded-bl-sm bg-card px-4 py-2.5 text-sm text-card-foreground ring-1 ring-border">
+        <ReactMarkdown
+          components={{
+            p: ({ children }) => (
+              <p className="whitespace-pre-wrap not-last:mb-2">{children}</p>
+            ),
+            ul: ({ children }) => (
+              <ul className="my-2 list-disc space-y-1 pl-5">{children}</ul>
+            ),
+            ol: ({ children }) => (
+              <ol className="my-2 list-decimal space-y-1 pl-5">{children}</ol>
+            ),
+            li: ({ children }) => <li className="leading-snug">{children}</li>,
+            strong: ({ children }) => (
+              <strong className="font-semibold">{children}</strong>
+            ),
+            a: ({ href, children }) => (
+              <a
+                href={href}
+                target="_blank"
+                rel="noreferrer"
+                className="underline underline-offset-2"
+              >
+                {children}
+              </a>
+            ),
+          }}
+        >
+          {text}
+        </ReactMarkdown>
       </div>
     </div>
   );
