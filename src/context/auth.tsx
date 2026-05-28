@@ -9,6 +9,17 @@ type User = {
     username: string;
 };
 
+export class AuthError extends Error {
+    code?: string;
+    retryAfter?: number;
+    constructor(message: string, code?: string, retryAfter?: number) {
+        super(message);
+        this.name = "AuthError";
+        this.code = code;
+        this.retryAfter = retryAfter;
+    }
+}
+
 type AuthContextType = {
     user: User | null;
     loading: boolean;
@@ -60,7 +71,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         });
 
         if (!response.ok) {
-            throw new Error(await extractErrorMessage(response, "Login failed"));
+            const data = await response.json().catch(() => null);
+            const message =
+                typeof data?.error === "string" ? data.error : "Login failed";
+            throw new AuthError(
+                message,
+                typeof data?.code === "string" ? data.code : undefined,
+                typeof data?.retryAfter === "number" ? data.retryAfter : undefined,
+            );
         }
 
         const { user } = await response.json();
@@ -77,8 +95,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (!response.ok) {
             throw new Error(await extractErrorMessage(response, "Signup failed"));
         }
-
-        await login(email, password);
     }
 
     async function logout(): Promise<void> {

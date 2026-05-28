@@ -6,6 +6,8 @@ import { prisma } from '@/lib/prisma';
 import 'dotenv/config';
 
 const SEVEN_DAYS_SECONDS = 60 * 60 * 24 * 7;
+const MAX_FAILED_ATTEMPTS = 5;
+const LOCK_DURATION_MS = 15 * 60 * 1000;
 
 export async function POST(request: Request) {
   try {
@@ -27,12 +29,71 @@ export async function POST(request: Request) {
       );
     }
 
+    const now = new Date();
+    if (user.lockedUntil && user.lockedUntil > now) {
+      const retryAfterSeconds = Math.ceil(
+        (user.lockedUntil.getTime() - now.getTime()) / 1000
+      );
+      return NextResponse.json(
+        {
+          error: 'Too many failed attempts. Try again in a few minutes.',
+          code: 'LOCKED',
+          retryAfter: retryAfterSeconds,
+        },
+        {
+          status: 429,
+          headers: { 'Retry-After': String(retryAfterSeconds) },
+        }
+      );
+    }
+
     const isPasswordCorrect = await bcrypt.compare(password, user.passwordHash);
     if (!isPasswordCorrect) {
+      const nextAttempts = user.failedLoginAttempts + 1;
+      const shouldLock = nextAttempts >= MAX_FAILED_ATTEMPTS;
+      await prisma.user.update({
+        where: { id: user.id },
+        data: shouldLock
+          ? {
+              failedLoginAttempts: 0,
+              lockedUntil: new Date(now.getTime() + LOCK_DURATION_MS),
+            }
+          : { failedLoginAttempts: nextAttempts },
+      });
+      if (shouldLock) {
+        return NextResponse.json(
+          {
+            error: 'Too many failed attempts. Try again in 15 minutes.',
+            code: 'LOCKED',
+            retryAfter: Math.ceil(LOCK_DURATION_MS / 1000),
+          },
+          {
+            status: 429,
+            headers: { 'Retry-After': String(LOCK_DURATION_MS / 1000) },
+          }
+        );
+      }
       return NextResponse.json(
         { error: 'Invalid email or password' },
         { status: 401 }
       );
+    }
+
+    if (!user.emailVerified) {
+      return NextResponse.json(
+        {
+          error: 'Please verify your email before logging in.',
+          code: 'EMAIL_NOT_VERIFIED',
+        },
+        { status: 403 }
+      );
+    }
+
+    if (user.failedLoginAttempts > 0 || user.lockedUntil) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { failedLoginAttempts: 0, lockedUntil: null },
+      });
     }
 
     const token = jwt.sign(
