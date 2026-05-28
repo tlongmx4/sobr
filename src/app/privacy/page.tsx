@@ -21,7 +21,8 @@ export default function PrivacyPage() {
           Privacy
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Plain English. Last updated when you read this commit.
+          Plain English. Last updated when you read this commit. (Version of
+          May 28, 2026.)
         </p>
 
         <div className="mt-10 space-y-8 text-[15px] leading-relaxed">
@@ -38,15 +39,31 @@ export default function PrivacyPage() {
 
           <Section title="Where it lives">
             <p>
-              All of the above is stored in a managed Postgres database. The
-              database provider encrypts data at rest by default. Your
-              conversations and journal entries are stored as plain text in
-              the database — they are not separately encrypted by the app.
+              All of the above is stored in a managed Postgres database hosted
+              in the United States. The database provider encrypts data at
+              rest by default. Your conversations and journal entries are
+              stored as plain text in the database — they are not separately
+              encrypted by the app.
             </p>
             <p>
               That means if someone got read access to the database, they
               could read your conversations. We work to prevent that, but you
               should know it&apos;s where the trust boundary is.
+            </p>
+          </Section>
+
+          <Section title="Who can read your data">
+            <p>
+              sobr is operated by Tim Long. Right now, the database is
+              accessible to me as the operator for maintenance and debugging.
+              I do not actively read your conversations, but I have technical
+              access to them.
+            </p>
+            <p>
+              As the team grows, we&apos;ll publish our internal access
+              policies. If you want a version of sobr where even the operator
+              cannot read your messages, that&apos;s not what V1 is — but
+              it&apos;s on the roadmap.
             </p>
           </Section>
 
@@ -68,8 +85,9 @@ export default function PrivacyPage() {
             <p>
               Anthropic does not train their models on this data. They retain
               inputs and outputs for up to 30 days for trust and safety
-              review, after which they delete it. Anthropic&apos;s terms
-              govern their handling.
+              review, after which they delete it. Anthropic processes this
+              data on US-based infrastructure. Anthropic&apos;s terms govern
+              their handling.
             </p>
           </Section>
 
@@ -94,10 +112,11 @@ export default function PrivacyPage() {
             <p>
               If you disclose a crisis to sobr, that disclosure is stored in
               the same database as the rest of your conversations. We are
-              not legally protected as a healthcare provider, and your
-              records could be subject to legal process. We are obligated to
-              comply with valid legal requests and will notify you when we
-              are permitted to do so.
+              not a HIPAA-covered healthcare provider, and your conversations
+              here do not have the same legal protections as a session with
+              a licensed therapist or doctor. Your records could be subject
+              to legal process. We are obligated to comply with valid legal
+              requests and will notify you when we are permitted to do so.
             </p>
           </Section>
 
@@ -105,15 +124,32 @@ export default function PrivacyPage() {
             <p>
               You can delete your account at any time from the Settings page.
               When you delete your account, your profile, check-ins, and chat
-              history are removed from our database immediately. Backups may
-              retain copies for up to 30 days before being overwritten.
+              history are removed from our database immediately. Backups
+              managed by our hosting provider may retain copies temporarily
+              under their standard retention policy before being overwritten.
+            </p>
+          </Section>
+
+          <Section title="When this changes">
+            <p>
+              If we change how we handle your data, we&apos;ll update this
+              page and notify you the next time you log in. For meaningful
+              changes — new data we collect, new third parties we share with
+              — we&apos;ll give you the chance to delete your account before
+              the change takes effect.
             </p>
           </Section>
 
           <Section title="Questions">
             <p>
-              Reach out to the person who invited you to sobr if you have
-              questions or want to know more about how we handle your data.
+              If you have questions about how we handle your data, email{" "}
+              <a
+                href="mailto:tlongmx4@gmail.com"
+                className="underline underline-offset-2 hover:text-foreground"
+              >
+                tlongmx4@gmail.com
+              </a>
+              . We try to respond within 2 business days.
             </p>
           </Section>
         </div>
