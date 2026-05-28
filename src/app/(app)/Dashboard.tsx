@@ -4,7 +4,8 @@ import { useChat } from "@ai-sdk/react";
 import type { UIMessage } from "ai";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Send, Square, CalendarCheck2, Sparkles, LogOut } from "lucide-react";
+import Link from "next/link";
+import { Send, Square, CalendarCheck2, Sparkles, LogOut, Settings as SettingsIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -109,10 +110,15 @@ export function Dashboard({ user, initialMessages, todayCheckIn }: Props) {
             sobr
           </span>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <span className="hidden text-sm text-muted-foreground sm:block">
             Hey, {displayName}
           </span>
+          <Button variant="ghost" size="icon-sm" asChild aria-label="Settings">
+            <Link href="/settings">
+              <SettingsIcon className="size-3.5" />
+            </Link>
+          </Button>
           <Button variant="ghost" size="sm" onClick={handleLogout}>
             <LogOut className="size-3.5" />
             <span className="hidden sm:inline">Log out</span>
@@ -318,15 +324,18 @@ function QuickLinksCard() {
         </CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-1">
-        {["Check-in history", "Journal", "Settings"].map((label) => (
-          <button
-            key={label}
-            disabled
-            className="text-left text-sm text-muted-foreground/70 py-1"
-          >
-            {label}
-          </button>
-        ))}
+        <Link
+          href="/settings"
+          className="text-left text-sm text-muted-foreground hover:text-foreground py-1"
+        >
+          Settings
+        </Link>
+        <Link
+          href="/privacy"
+          className="text-left text-sm text-muted-foreground hover:text-foreground py-1"
+        >
+          Privacy
+        </Link>
       </CardContent>
     </Card>
   );
