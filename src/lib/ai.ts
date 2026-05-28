@@ -1,7 +1,3 @@
-import Anthropic from "@anthropic-ai/sdk";
+import { anthropic } from "@ai-sdk/anthropic";
 
-export const anthropic = new Anthropic({
-    apiKey: process.env.ANTHROPIC_API_KEY!,
-});
-
-export const MODEL = "claude-sonnet-4-5";
+export const chatModel = anthropic("claude-sonnet-4-6");

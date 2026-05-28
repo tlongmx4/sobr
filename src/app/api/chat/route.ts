@@ -1,79 +1,69 @@
-import { NextRequest } from "next/server";
-import { anthropic, MODEL } from "@/lib/ai";
+import { streamText, convertToModelMessages, type UIMessage } from "ai";
+import { chatModel } from "@/lib/ai";
 import { buildSystemPrompt } from "@/lib/context";
 import { getCurrentUserId } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { z } from "zod";
 
-const schema = z.object({ message: z.string().min(1).max(10000) });
+export const maxDuration = 60;
 
-export async function POST(req: NextRequest) {
+const MAX_USER_MESSAGE_LENGTH = 10000;
+
+function extractText(message: UIMessage): string {
+  return message.parts
+    .filter((p): p is { type: "text"; text: string } => p.type === "text")
+    .map((p) => p.text)
+    .join("");
+}
+
+export async function POST(req: Request) {
   const userId = await getCurrentUserId();
   if (!userId) return new Response("Unauthorized", { status: 401 });
 
-  const body = await req.json();
-  const parsed = schema.safeParse(body);
-  if (!parsed.success) return new Response("Bad request", { status: 400 });
+  let body: { messages?: UIMessage[] };
+  try {
+    body = await req.json();
+  } catch {
+    return new Response("Bad request", { status: 400 });
+  }
 
-  const { message } = parsed.data;
+  const messages = body.messages;
+  if (!Array.isArray(messages) || messages.length === 0) {
+    return new Response("Bad request", { status: 400 });
+  }
+
+  const last = messages[messages.length - 1];
+  if (last.role !== "user") {
+    return new Response("Bad request", { status: 400 });
+  }
+
+  const userText = extractText(last);
+  if (userText.length === 0 || userText.length > MAX_USER_MESSAGE_LENGTH) {
+    return new Response("Bad request", { status: 400 });
+  }
 
   await prisma.chatMessage.create({
-    data: { userId, role: "USER", content: message },
+    data: { userId, role: "USER", content: userText },
   });
-
-  const history = await prisma.chatMessage.findMany({
-    where: { userId },
-    orderBy: { createdAt: "desc" },
-    take: 20,
-  });
-
-  const messages = history.reverse().map((m) => ({
-    role: m.role === "USER" ? ("user" as const) : ("assistant" as const),
-    content: m.content,
-  }));
 
   const systemPrompt = await buildSystemPrompt(userId);
 
-  const stream = await anthropic.messages.stream({
-    model: MODEL,
-    max_tokens: 1024,
+  const result = streamText({
+    model: chatModel,
     system: systemPrompt,
-    messages,
-  });
-
-  let fullResponse = "";
-  const encoder = new TextEncoder();
-
-  const readable = new ReadableStream({
-    async start(controller) {
-      try {
-        for await (const event of stream) {
-          if (
-            event.type === "content_block_delta" &&
-            event.delta.type === "text_delta"
-          ) {
-            const text = event.delta.text;
-            fullResponse += text;
-            controller.enqueue(encoder.encode(text));
-          }
-        }
+    messages: await convertToModelMessages(messages),
+    onFinish: async ({ text }) => {
+      if (text.length > 0) {
         await prisma.chatMessage.create({
-          data: { userId, role: "ASSISTANT", content: fullResponse },
+          data: { userId, role: "ASSISTANT", content: text },
         });
-        controller.close();
-      } catch (err) {
-        console.error('chat stream failed', {
-          name: err instanceof Error ? err.name : 'Unknown',
-        });
-        try {
-          controller.enqueue(encoder.encode('\n\n[connection interrupted]'));
-        } catch {}
-        controller.close();
       }
+    },
+    onError: ({ error }) => {
+      console.error("chat stream failed", {
+        name: error instanceof Error ? error.name : "Unknown",
+      });
     },
   });
 
-  return new Response(readable, {
-    headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache" },
-  });
+  return result.toUIMessageStreamResponse();
 }
