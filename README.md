@@ -12,6 +12,7 @@ Most mental health and recovery apps default to clinical tone, gamification, or 
 
 ## Features
 
+- **Guided onboarding** — A first-run, blocking flow over the dashboard collects preferred name, hobbies, framework preference, and sobriety context, so sobr is personalized from the first message instead of starting on defaults. It opens with required safety disclaimers (companion not clinical, crisis resources, AI limitations and data retention) that the user acknowledges before continuing. Acceptance is recorded as metadata only and is versioned, so revised disclaimers can re-prompt.
 - **Streaming chat** — Conversations powered by Claude via the Vercel AI SDK. Personalized with the user's profile, framework preference, and recent check-ins.
 - **Daily check-ins** — Quick emoji-scale capture of mood, energy, and cravings, plus an optional journal entry. Today's check-in is surfaced on the dashboard.
 - **Framework support** — Biblical, 12-step, both, or secular. The system prompt adapts to the user's preference.
@@ -87,6 +88,7 @@ Open [http://localhost:3000](http://localhost:3000).
 | GET    | `/api/users`                       | Yes  | Get current user profile (passwordHash omitted)     |
 | PATCH  | `/api/users`                       | Yes  | Update profile                                      |
 | DELETE | `/api/users`                       | Yes  | Delete account; cascades and clears session cookie  |
+| POST   | `/api/onboarding`                  | Yes  | Save onboarding answers; stamp completion + consent |
 | POST   | `/api/auth/login`                  | No   | Login; rate-limited; rejects unverified accounts    |
 | POST   | `/api/auth/logout`                 | No   | Clear session cookie                                |
 | POST   | `/api/auth/verify`                 | No   | Consume a verification token                        |
