@@ -83,6 +83,8 @@ model CheckIn {
   cravingRating Int? // 1-5, optional
   journalEntry String? // free text, optional
   createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
 }
 
 model ChatMessage {
@@ -92,4 +94,6 @@ model ChatMessage {
   role ChatRole
   content String
   createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
 }
