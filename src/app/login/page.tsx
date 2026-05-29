@@ -132,19 +132,22 @@ export default function LoginPage() {
                         {mutation.isPending ? "Signing in..." : "Sign in"}
                     </button>
 
-                    <div className="flex items-center justify-between text-sm">
+                    <div className="space-y-4 pt-1 text-center text-sm">
                         <Link
                             href="/forgot-password"
-                            className="text-muted-foreground hover:text-foreground"
+                            className="block font-medium text-primary underline-offset-2 hover:underline"
                         >
-                            Forgot password?
+                            Forgot your password?
                         </Link>
-                        <Link
-                            href="/signup"
-                            className="text-muted-foreground hover:text-foreground"
-                        >
-                            Create account
-                        </Link>
+                        <p className="border-t border-border pt-4 text-muted-foreground">
+                            New to sobrandsteady?{" "}
+                            <Link
+                                href="/signup"
+                                className="font-semibold text-primary underline-offset-2 hover:underline"
+                            >
+                                Create an account
+                            </Link>
+                        </p>
                     </div>
                 </form>
             </div>
