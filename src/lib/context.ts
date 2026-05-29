@@ -1,43 +1,13 @@
 import { prisma } from "@/lib/prisma";
 
-export async function buildSystemPrompt(userId: string) {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    include: {
-      checkIns: {
-        orderBy: { createdAt: "desc" },
-        take: 5,
-      },
-    },
-  });
+export type SystemPrompt = {
+  /** Static persona + voice + crisis rules. Cached by the model provider. */
+  stable: string;
+  /** Per-user content: name, sobriety, recent check-ins, framework. */
+  dynamic: string;
+};
 
-  if (!user) throw new Error("User not found");
-
-  const displayName = user.preferredName || user.name;
-  const sobrietyLine = user.sobrietyDate
-    ? `Sobriety date: ${user.sobrietyDate.toISOString().split("T")[0]}`
-    : `Sobriety status: ${user.sobrietyStatus}`;
-
-  const checkInSummary = user.checkIns.length
-    ? user.checkIns
-        .map(
-          (c) =>
-            `- ${c.createdAt.toISOString().split("T")[0]}: mood ${c.moodRating}/5, energy ${c.energyRating}/5${c.cravingRating ? `, craving ${c.cravingRating}/5` : ""}${c.journalEntry ? ` — "${c.journalEntry}"` : ""}`
-        )
-        .join("\n")
-    : "No check-ins yet.";
-
-  return `You are sobr — a grounded, warm, no-bullshit companion for someone navigating sobriety as part of a fuller life. You are not clinical, not preachy, not a therapist. You're the friend who actually gets it.
-
-# Who you're talking to
-Name: ${displayName}
-${sobrietyLine}
-Framework preference: ${user.frameworkPreference}
-Hobbies: ${user.hobbies.join(", ") || "none listed"}
-Substances: ${user.substances.join(", ") || "none listed"}
-
-# Recent check-ins
-${checkInSummary}
+const STABLE_PROMPT = `You are sobr — a grounded, warm, no-bullshit companion for someone navigating sobriety as part of a fuller life. You are not clinical, not preachy, not a therapist. You're the friend who actually gets it.
 
 # Voice
 - Talk like a real friend would. Casual, warm, direct.
@@ -90,16 +60,56 @@ Drop the conversational tone. Name what you heard plainly. Provide these resourc
 Encourage contact with a real person — emergency services, a trusted person, a sponsor. Don't soften it to maintain vibe.
 
 ## After the moment
-Once resources are shared and the person is grounded, come back to being a friend. Don't keep reciting hotlines. Don't make the rest of the conversation about the crisis. Stay with them.
+Once resources are shared and the person is grounded, come back to being a friend. Don't keep reciting hotlines. Don't make the rest of the conversation about the crisis. Stay with them.`;
+
+export async function buildSystemPrompt(userId: string): Promise<SystemPrompt> {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    include: {
+      checkIns: {
+        orderBy: { createdAt: "desc" },
+        take: 5,
+      },
+    },
+  });
+
+  if (!user) throw new Error("User not found");
+
+  const displayName = user.preferredName || user.name;
+  const sobrietyLine = user.sobrietyDate
+    ? `Sobriety date: ${user.sobrietyDate.toISOString().split("T")[0]}`
+    : `Sobriety status: ${user.sobrietyStatus}`;
+
+  const checkInSummary = user.checkIns.length
+    ? user.checkIns
+        .map(
+          (c) =>
+            `- ${c.createdAt.toISOString().split("T")[0]}: mood ${c.moodRating}/5, energy ${c.energyRating}/5${c.cravingRating ? `, craving ${c.cravingRating}/5` : ""}${c.journalEntry ? ` — "${c.journalEntry}"` : ""}`
+        )
+        .join("\n")
+    : "No check-ins yet.";
+
+  const frameworkAdaptation =
+    user.frameworkPreference === "BIBLE"
+      ? "User prefers Biblical/Christian framing. You can reference scripture and faith naturally when relevant."
+      : user.frameworkPreference === "TWELVE_STEP"
+        ? "User prefers 12-step framing. You can reference steps, sponsors, meetings, the program naturally when relevant."
+        : user.frameworkPreference === "BOTH"
+          ? "User is open to both Biblical and 12-step framing. Use whichever fits the moment."
+          : "User prefers a secular approach. Avoid religious or 12-step framing unless the user brings it up.";
+
+  const dynamic = `# Who you're talking to
+Name: ${displayName}
+${sobrietyLine}
+Framework preference: ${user.frameworkPreference}
+Hobbies: ${user.hobbies.join(", ") || "none listed"}
+Substances: ${user.substances.join(", ") || "none listed"}
+
+# Recent check-ins
+${checkInSummary}
 
 # Framework adaptation
-${
-  user.frameworkPreference === "BIBLE"
-    ? "User prefers Biblical/Christian framing. You can reference scripture and faith naturally when relevant."
-    : user.frameworkPreference === "TWELVE_STEP"
-      ? "User prefers 12-step framing. You can reference steps, sponsors, meetings, the program naturally when relevant."
-      : user.frameworkPreference === "BOTH"
-        ? "User is open to both Biblical and 12-step framing. Use whichever fits the moment."
-        : "User prefers a secular approach. Avoid religious or 12-step framing unless the user brings it up."
-}`;
+${frameworkAdaptation}`;
+
+  return { stable: STABLE_PROMPT, dynamic };
 }

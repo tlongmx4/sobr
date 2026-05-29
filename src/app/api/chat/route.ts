@@ -45,11 +45,20 @@ export async function POST(req: Request) {
     data: { userId, role: "USER", content: userText },
   });
 
-  const systemPrompt = await buildSystemPrompt(userId);
+  const { stable, dynamic } = await buildSystemPrompt(userId);
 
   const result = streamText({
     model: chatModel,
-    system: systemPrompt,
+    system: [
+      {
+        role: "system",
+        content: stable,
+        providerOptions: {
+          anthropic: { cacheControl: { type: "ephemeral" } },
+        },
+      },
+      { role: "system", content: dynamic },
+    ],
     messages: await convertToModelMessages(messages),
     onFinish: async ({ text }) => {
       if (text.length > 0) {
