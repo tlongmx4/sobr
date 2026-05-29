@@ -1,11 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
 export default function CheckEmailPage() {
+  // useSearchParams must be inside a Suspense boundary or static prerender fails.
+  return (
+    <Suspense fallback={<div className="min-h-dvh bg-background" />}>
+      <CheckEmailContent />
+    </Suspense>
+  );
+}
+
+function CheckEmailContent() {
   const params = useSearchParams();
   const email = params.get("email") ?? "";
   const [resending, setResending] = useState(false);

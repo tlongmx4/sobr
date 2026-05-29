@@ -1,11 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
 export default function ResetPasswordPage() {
+  // useSearchParams must be inside a Suspense boundary or static prerender fails.
+  return (
+    <Suspense fallback={<div className="min-h-dvh bg-background" />}>
+      <ResetPasswordContent />
+    </Suspense>
+  );
+}
+
+function ResetPasswordContent() {
   const router = useRouter();
   const params = useSearchParams();
   const token = params.get("token");

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,15 @@ import { Button } from "@/components/ui/button";
 type Status = "verifying" | "success" | "error" | "no-token";
 
 export default function VerifyEmailPage() {
+  // useSearchParams must be inside a Suspense boundary or static prerender fails.
+  return (
+    <Suspense fallback={<div className="min-h-dvh bg-background" />}>
+      <VerifyEmailContent />
+    </Suspense>
+  );
+}
+
+function VerifyEmailContent() {
   const params = useSearchParams();
   const token = params.get("token");
   const [status, setStatus] = useState<Status>(token ? "verifying" : "no-token");

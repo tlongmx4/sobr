@@ -48,11 +48,11 @@ export const DISCLAIMERS: Disclaimer[] = [
   },
   {
     title: "In a crisis, get real help fast",
-    body: "sobr is not an emergency service and cannot keep you safe in a crisis. If you are in danger or thinking about harming yourself, use the resources above right away.",
+    body: "sobr is not an emergency service and is not a substitute for crisis help. If you are in danger, please use the resources above right away.",
   },
   {
     title: "sobr is AI, and it can be wrong",
-    body: "Your conversations are processed by Anthropic, our AI provider, and may be retained by Anthropic for up to 30 days for trust and safety. sobr can make mistakes, so use your own judgment. See our privacy page for what we store.",
+    body: "Your conversations are processed by Anthropic, our AI provider. Anthropic does not train its models on them and keeps them for up to 30 days for trust and safety review, then deletes them. sobr can make mistakes, so use your own judgment. See our privacy page for the full picture.",
   },
 ];
 
