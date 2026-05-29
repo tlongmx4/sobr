@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/card";
 import { useAuth } from "@/context/auth";
 import { CheckInDialog } from "./CheckInDialog";
+import { OnboardingDialog } from "./OnboardingDialog";
 
 type DashboardUser = {
   id: string;
@@ -36,6 +37,7 @@ type Props = {
   user: DashboardUser;
   initialMessages: UIMessage[];
   todayCheckIn: TodayCheckIn;
+  needsOnboarding: boolean;
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -62,7 +64,12 @@ function extractText(message: UIMessage): string {
     .join("");
 }
 
-export function Dashboard({ user, initialMessages, todayCheckIn }: Props) {
+export function Dashboard({
+  user,
+  initialMessages,
+  todayCheckIn,
+  needsOnboarding,
+}: Props) {
   const router = useRouter();
   const { logout } = useAuth();
   const [input, setInput] = useState("");
@@ -199,6 +206,7 @@ export function Dashboard({ user, initialMessages, todayCheckIn }: Props) {
       </div>
 
       <CheckInDialog open={checkInOpen} onOpenChange={setCheckInOpen} />
+      <OnboardingDialog open={needsOnboarding} />
     </div>
   );
 }

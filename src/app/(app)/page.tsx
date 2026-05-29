@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getCurrentUserId } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { DISCLAIMER_VERSION } from "@/lib/onboarding";
 import type { UIMessage } from "ai";
 import { Dashboard } from "./Dashboard";
 
@@ -20,6 +21,8 @@ export default async function HomePage() {
         preferredName: true,
         sobrietyStatus: true,
         sobrietyDate: true,
+        onboardingCompletedAt: true,
+        disclaimersVersion: true,
       },
     }),
     prisma.chatMessage.findMany({
@@ -33,6 +36,10 @@ export default async function HomePage() {
   ]);
 
   if (!user) redirect("/login");
+
+  const needsOnboarding =
+    !user.onboardingCompletedAt ||
+    user.disclaimersVersion < DISCLAIMER_VERSION;
 
   const initialMessages: UIMessage[] = messages.map((m) => ({
     id: m.id,
@@ -53,6 +60,7 @@ export default async function HomePage() {
       }}
       initialMessages={initialMessages}
       todayCheckIn={todayCheckIn}
+      needsOnboarding={needsOnboarding}
     />
   );
 }
