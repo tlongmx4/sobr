@@ -39,6 +39,21 @@ enum TokenType {
   PASSWORD_RESET
 }
 
+enum Severity {
+  CRITICAL
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum CrisisCategory {
+  SUICIDAL_IDEATION
+  SELF_HARM
+  HARM_TO_OTHERS
+  SEVERE_DISTRESS
+  OTHER
+}
+
 model User {
   id String @id @default(cuid())
   email String @unique
@@ -59,6 +74,7 @@ model User {
   checkIns CheckIn[]
   chatMessages ChatMessage[]
   tokens Token[]
+  crisisFlags CrisisFlag[]
 }
 
 model Token {
@@ -94,6 +110,24 @@ model ChatMessage {
   role ChatRole
   content String
   createdAt DateTime @default(now())
+  crisisFlags CrisisFlag[]
 
   @@index([userId, createdAt])
+}
+
+model CrisisFlag {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messageId String
+  message ChatMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  severity Severity
+  category CrisisCategory
+  classifierConfidence Float?
+  classifierModel String
+  reviewed Boolean @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([createdAt])
 }

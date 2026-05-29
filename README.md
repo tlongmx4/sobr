@@ -25,7 +25,9 @@ Most mental health and recovery apps default to clinical tone, gamification, or 
 
 Crisis handling is the highest-stakes path in the app. The current implementation is **prompt-level**: a calibrated section of the system prompt instructs the model to distinguish real distress from venting, ask a direct middle-gear question when ambiguous, and provide resources cleanly when the signal is unambiguous (rendered as bolded markdown so phone numbers stand out).
 
-There is no separate safety classifier or flagged-interaction logging yet — both are on the roadmap (see TODO). Until those land, the model's calibration is the only safety layer between a user and the resource list, and the operator should treat this app accordingly.
+On top of that, a lightweight classifier (Claude Haiku) runs in parallel with the main conversational model on every user message. It reads a short rolling window of recent turns (so it can pick up trajectory, not just the latest line), scores risk, and when the verdict is `HIGH` or `CRITICAL` writes a `CrisisFlag` record for auditability. This is flag-and-log only: the classifier never intervenes in the stream, so the conversational model still owns the actual crisis response. If the classifier errors, it fails open and the chat is unaffected.
+
+Crisis flags are deliberately ephemeral. They store only risk metadata (severity, category, classifier confidence and model version) plus a reference to the message, never a copy of its content, and a daily job purges anything older than 14 days. They cascade-delete with the user, so right-to-be-forgotten still works end to end.
 
 ## Tech stack
 

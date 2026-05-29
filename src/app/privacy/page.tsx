@@ -22,7 +22,7 @@ export default function PrivacyPage() {
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Plain English. Last updated when you read this commit. (Version of
-          May 28, 2026.)
+          May 29, 2026.)
         </p>
 
         <div className="mt-10 space-y-8 text-[15px] leading-relaxed">
@@ -34,6 +34,12 @@ export default function PrivacyPage() {
               and substance disclosures, your daily check-ins (mood, energy,
               cravings, and any journal entry you write), and the full text
               of your chat conversations with the AI companion.
+            </p>
+            <p>
+              We also store automated crisis-risk flags. An automated
+              classifier scores the risk in your messages, and when it reads
+              a message as high risk we record a short-lived flag (described
+              under Crisis disclosures below).
             </p>
           </Section>
 
@@ -117,6 +123,17 @@ export default function PrivacyPage() {
               a licensed therapist or doctor. Your records could be subject
               to legal process. We are obligated to comply with valid legal
               requests and will notify you when we are permitted to do so.
+            </p>
+            <p>
+              To help the companion respond well, an automated classifier
+              reviews each message, along with recent context from the same
+              conversation, to gauge risk. The same recent context is already
+              sent to Anthropic for the main reply. When the classifier reads a
+              message as high risk, we store a small flag: the risk level and
+              category, the classifier&apos;s confidence and model version, and
+              a link to the message. The flag does not copy your message text.
+              These flags are deleted automatically after 14 days, and they are
+              removed immediately if you delete your account.
             </p>
           </Section>
 

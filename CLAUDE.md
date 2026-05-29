@@ -45,7 +45,8 @@ It is **not** a mental health app, clinical tool, or healthcare service. Positio
 ## Safety
 
 - Crisis-handling code is sensitive — review carefully before changing
-- Classifier-routed safety pattern: lightweight model evaluates risk in parallel with the main conversational model. Don't break that pattern
+- Classifier-routed safety pattern: lightweight model (Claude Haiku) evaluates risk in parallel with the main conversational model, reading a short rolling window of recent turns. Implemented in `src/lib/safety/classifier.ts` and wired into `src/app/api/chat/route.ts`. Don't break that pattern. It is flag-and-log only: it never intervenes in the stream, and it fails open (a classifier error must never break chat)
+- Crisis flags: when the classifier returns `HIGH`/`CRITICAL`, a `CrisisFlag` row is written (metadata only, never message content; references the `ChatMessage`). Deliberately ephemeral: 14-day retention via the daily purge at `src/app/api/cron/purge-crisis-flags/route.ts`, and cascade-deletes with the user. Don't add message content to this table
 - Crisis resources must be accurate: 988 (call or text), Crisis Text Line (text HOME to 741741), 911 for immediate danger
 - Never log full chat content, journal entries, or PII to stdout, error tracking, or third-party services
 - Anthropic retains API inputs/outputs for 30 days for trust and safety — disclosed in privacy page
