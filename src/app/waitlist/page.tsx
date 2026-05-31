@@ -1,4 +1,4 @@
-import { BrandMark } from "@/components/brand-mark";
+import { SiteHeader } from "@/components/site-header";
 import { CRISIS_RESOURCES } from "@/lib/onboarding";
 import { WaitlistForm } from "./WaitlistForm";
 
@@ -10,9 +10,7 @@ export const metadata = {
 export default function WaitlistPage() {
   return (
     <div className="min-h-dvh bg-background">
-      <header className="border-b bg-card px-6 py-3">
-        <BrandMark href="/" />
-      </header>
+      <SiteHeader href="/" />
 
       <main className="mx-auto max-w-md px-6 py-12 sm:py-16">
         <h1 className="font-heading text-3xl font-semibold tracking-tight">

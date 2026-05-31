@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SiteHeader } from "@/components/site-header";
 
 export const metadata = {
   title: "Privacy — sobrandsteady",
@@ -7,14 +8,7 @@ export const metadata = {
 export default function PrivacyPage() {
   return (
     <div className="min-h-dvh bg-background">
-      <header className="border-b bg-card px-6 py-3">
-        <Link
-          href="/"
-          className="font-heading text-lg font-semibold tracking-tight"
-        >
-          sobrandsteady
-        </Link>
-      </header>
+      <SiteHeader href="/" />
 
       <main className="mx-auto max-w-2xl px-6 py-12">
         <h1 className="font-heading text-3xl font-semibold tracking-tight">

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { AuthError, useAuth } from '@/context/auth';
 import { useState } from 'react';
+import { SiteHeader } from '@/components/site-header';
 
 export default function LoginPage() {
     const router = useRouter();
@@ -52,7 +53,9 @@ export default function LoginPage() {
         : 15;
 
     return (
-        <div className="flex min-h-dvh items-center justify-center bg-background px-4 py-12 sm:px-6 lg:px-8">
+        <div className="flex min-h-dvh flex-col bg-background">
+            <SiteHeader />
+            <div className="flex flex-1 items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
             <div className="w-full max-w-md space-y-8">
                 <div>
                     <h2 className="mt-6 text-center font-heading text-3xl font-semibold tracking-tight">
@@ -150,6 +153,7 @@ export default function LoginPage() {
                         </p>
                     </div>
                 </form>
+            </div>
             </div>
         </div>
     );

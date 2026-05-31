@@ -1,8 +1,7 @@
 import { redirect } from "next/navigation";
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
 import { getCurrentUserId } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { SiteHeader } from "@/components/site-header";
 import { SettingsClient } from "./SettingsClient";
 
 export default async function SettingsPage() {
@@ -23,24 +22,15 @@ export default async function SettingsPage() {
 
   return (
     <div className="min-h-dvh bg-background">
-      <header className="border-b bg-card px-6 py-3">
-        <div className="mx-auto flex max-w-2xl items-center justify-between">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
-          >
-            <ArrowLeft className="size-3.5" />
-            Back
-          </Link>
-          <span className="font-heading text-lg font-semibold tracking-tight">
-            Settings
-          </span>
-          <span className="w-12" />
-        </div>
-      </header>
+      <SiteHeader href="/" />
 
       <main className="mx-auto max-w-2xl px-6 py-10">
-        <SettingsClient user={user} />
+        <h1 className="font-heading text-2xl font-semibold tracking-tight">
+          Settings
+        </h1>
+        <div className="mt-8">
+          <SettingsClient user={user} />
+        </div>
       </main>
     </div>
   );
