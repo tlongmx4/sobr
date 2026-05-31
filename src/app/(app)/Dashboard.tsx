@@ -17,7 +17,9 @@ import {
 } from "@/components/ui/card";
 import { useAuth } from "@/context/auth";
 import { BrandMark } from "@/components/brand-mark";
+import type { HistoryDay } from "@/lib/checkins";
 import { CheckInDialog } from "./CheckInDialog";
+import { CheckInHistory } from "./CheckInHistory";
 import { OnboardingDialog } from "./OnboardingDialog";
 
 type DashboardUser = {
@@ -39,6 +41,7 @@ type Props = {
   initialMessages: UIMessage[];
   todayCheckIn: TodayCheckIn;
   needsOnboarding: boolean;
+  history: HistoryDay[];
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -70,6 +73,7 @@ export function Dashboard({
   initialMessages,
   todayCheckIn,
   needsOnboarding,
+  history,
 }: Props) {
   const router = useRouter();
   const { logout } = useAuth();
@@ -137,6 +141,7 @@ export function Dashboard({
             todayCheckIn={todayCheckIn}
             onCheckIn={() => setCheckInOpen(true)}
           />
+          <CheckInHistory days={history} />
           <QuickLinksCard />
         </aside>
 
