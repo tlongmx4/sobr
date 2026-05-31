@@ -20,9 +20,9 @@ export default function WaitlistPage() {
         </h1>
         <div className="mt-3 space-y-3 text-[15px] leading-relaxed text-muted-foreground">
           <p>
-            sobrandsteady is a warm, low-shame companion for everyday life in
-            recovery. It starts with you and what you&apos;re into, and it&apos;s
-            here for a real conversation whenever you want one.
+            sobrandsteady is a companion for everyday life in recovery. It
+            starts with you and what you&apos;re into, and it&apos;s here for a
+            real conversation whenever you want one.
           </p>
           <p>
             We&apos;re rolling out access in stages. Join the list and we&apos;ll
