@@ -44,3 +44,6 @@ next-env.d.ts
 
 # local notes
 TODO.md
+
+# brand assets for external use (social images + their generators)
+brand/
