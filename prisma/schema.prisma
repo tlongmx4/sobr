@@ -118,6 +118,16 @@ model ChatMessage {
   @@index([userId, createdAt])
 }
 
+// Public beta-interest capture. Standalone, not linked to a User: these are
+// prospects before they have an account. No sensitive recovery data here.
+model Waitlist {
+  id String @id @default(cuid())
+  email String @unique
+  firstName String?
+  note String?
+  createdAt DateTime @default(now())
+}
+
 model CrisisFlag {
   id String @id @default(cuid())
   userId String

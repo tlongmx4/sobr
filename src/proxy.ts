@@ -9,6 +9,7 @@ const alwaysPublic = [
     '/verify-email',
     '/check-email',
     '/privacy',
+    '/waitlist',
 ];
 
 export function proxy(request: NextRequest) {

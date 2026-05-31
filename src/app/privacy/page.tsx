@@ -22,7 +22,7 @@ export default function PrivacyPage() {
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Plain English. Last updated when you read this commit. (Version of
-          May 29, 2026.)
+          May 30, 2026.)
         </p>
 
         <div className="mt-10 space-y-8 text-[15px] leading-relaxed">
@@ -40,6 +40,26 @@ export default function PrivacyPage() {
               classifier scores the risk in your messages, and when it reads
               a message as high risk we record a short-lived flag (described
               under Crisis disclosures below).
+            </p>
+          </Section>
+
+          <Section title="The waitlist">
+            <p>
+              If you join our waitlist before you have an account, we store only
+              what you give us on that page: your email address, your first name
+              if you share it, and an optional note. We use it to reach out when
+              a spot opens up. It is not linked to an app account, we do not send
+              it to Anthropic, and we do not use it for advertising.
+            </p>
+            <p>
+              Want off the list? Email us at{" "}
+              <a
+                href="mailto:hello@sobrandsteady.com"
+                className="underline underline-offset-2 hover:text-foreground"
+              >
+                hello@sobrandsteady.com
+              </a>{" "}
+              and we will remove you.
             </p>
           </Section>
 

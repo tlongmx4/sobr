@@ -16,6 +16,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useAuth } from "@/context/auth";
+import { BrandMark } from "@/components/brand-mark";
 import { CheckInDialog } from "./CheckInDialog";
 import { OnboardingDialog } from "./OnboardingDialog";
 
@@ -112,12 +113,7 @@ export function Dashboard({
   return (
     <div className="flex h-dvh flex-col bg-background">
       <header className="flex items-center justify-between border-b bg-card px-6 py-3">
-        <div className="flex items-center gap-2">
-          <Sparkles className="size-5 text-primary" />
-          <span className="font-heading text-lg font-semibold tracking-tight">
-            sobrandsteady
-          </span>
-        </div>
+        <BrandMark />
         <div className="flex items-center gap-2">
           <span className="hidden text-sm text-muted-foreground sm:block">
             Hey, {displayName}
