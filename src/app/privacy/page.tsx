@@ -181,10 +181,10 @@ export default function PrivacyPage() {
             <p>
               If you have questions about how we handle your data, email{" "}
               <a
-                href="mailto:tlongmx4@gmail.com"
+                href="mailto:privacy@sobrandsteady.com"
                 className="underline underline-offset-2 hover:text-foreground"
               >
-                tlongmx4@gmail.com
+                privacy@sobrandsteady.com
               </a>
               . We try to respond within 2 business days.
             </p>
