@@ -16,10 +16,11 @@ export default function SignupPage() {
     const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [inviteCode, setInviteCode] = useState("");
 
     const mutation = useMutation({
-        mutationFn: ({ name, username, email, password }: { name: string; username: string; email: string; password: string }) =>
-            signup(name, username, email, password),
+        mutationFn: ({ name, username, email, password, inviteCode }: { name: string; username: string; email: string; password: string; inviteCode: string }) =>
+            signup(name, username, email, password, inviteCode),
         onSuccess: (_data, vars) => {
             router.push(`/check-email?email=${encodeURIComponent(vars.email)}`);
         },
@@ -27,7 +28,7 @@ export default function SignupPage() {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        mutation.mutate({ name, username, email, password });
+        mutation.mutate({ name, username, email, password, inviteCode });
     };
 
     return (
@@ -99,11 +100,28 @@ export default function SignupPage() {
                                     minLength={8}
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    className="relative block w-full rounded-b-md border border-input bg-background py-2 px-3 text-foreground placeholder:text-muted-foreground focus:z-10 focus:outline-none focus:ring-2 focus:ring-ring sm:text-sm"
+                                    className="relative block w-full border border-input bg-background py-2 px-3 text-foreground placeholder:text-muted-foreground focus:z-10 focus:outline-none focus:ring-2 focus:ring-ring sm:text-sm"
                                     placeholder="Password (8+ characters)"
                                 />
                             </div>
+                            <div>
+                                <input
+                                    id="invite-code"
+                                    name="inviteCode"
+                                    type="text"
+                                    autoComplete="off"
+                                    required
+                                    value={inviteCode}
+                                    onChange={(e) => setInviteCode(e.target.value)}
+                                    className="relative block w-full rounded-b-md border border-input bg-background py-2 px-3 text-foreground placeholder:text-muted-foreground focus:z-10 focus:outline-none focus:ring-2 focus:ring-ring sm:text-sm"
+                                    placeholder="Invite code"
+                                />
+                            </div>
                         </div>
+
+                        <p className="-mt-3 text-center text-xs text-muted-foreground">
+                            sobrandsteady is invite-only for now. Enter the code you were given to create an account.
+                        </p>
 
                         <button
                             type="submit"

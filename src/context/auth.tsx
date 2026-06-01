@@ -24,7 +24,7 @@ type AuthContextType = {
     user: User | null;
     loading: boolean;
     login: (email: string, password: string) => Promise<void>;
-    signup: (name: string, username: string, email: string, password: string) => Promise<void>;
+    signup: (name: string, username: string, email: string, password: string, inviteCode: string) => Promise<void>;
     logout: () => Promise<void>;
 };
 
@@ -85,11 +85,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(user);
     }
 
-    async function signup(name: string, username: string, email: string, password: string): Promise<void> {
+    async function signup(name: string, username: string, email: string, password: string, inviteCode: string): Promise<void> {
         const response = await fetch("/api/users", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ name, username, email, password }),
+            body: JSON.stringify({ name, username, email, password, inviteCode }),
         });
 
         if (!response.ok) {

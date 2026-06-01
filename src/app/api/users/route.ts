@@ -12,7 +12,12 @@ const nameSchema = z.string().min(1).max(100);
 const usernameSchema = z.string().min(3).max(30);
 const emailSchema = z.email().max(255);
 const passwordSchema = z.string().min(8).max(128);
+const inviteCodeSchema = z.string().min(1).max(100);
 const preferredNameSchema = z.string().min(1).max(100);
+
+// Thrown inside the signup transaction when the invite code is missing,
+// unknown, or fully used. Rolls back the transaction so no account is created.
+class InvalidInviteCodeError extends Error {}
 
 const hobbyItemSchema = z.string().min(1).max(50);
 const hobbiesSchema = z.array(hobbyItemSchema).max(20);
@@ -29,6 +34,7 @@ const createUserSchema = z.object({
   username: usernameSchema,
   email: emailSchema,
   password: passwordSchema,
+  inviteCode: inviteCodeSchema,
 });
 
 const updateUserSchema = z.object({
@@ -70,13 +76,29 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: parsed.error.issues }, { status: 400 });
     }
 
-    const { password, ...rest } = parsed.data;
+    const { password, inviteCode, ...rest } = parsed.data;
     const passwordHash = await bcrypt.hash(password, 10);
 
     try {
-        const user = await prisma.user.create({
-            data: { ...rest, passwordHash },
-            omit: { passwordHash: true },
+        // Claim a use of the invite code and create the user in one transaction.
+        // The conditional `uses < maxUses` update atomically reserves a slot, so
+        // two concurrent signups can't over-spend a single-use code. If the code
+        // is missing/unknown/spent, or user creation fails (duplicate email),
+        // the whole transaction rolls back and no use is consumed.
+        const user = await prisma.$transaction(async (tx) => {
+            const claimed = await tx.inviteCode.updateMany({
+                where: { code: inviteCode, uses: { lt: prisma.inviteCode.fields.maxUses } },
+                data: { uses: { increment: 1 } },
+            });
+
+            if (claimed.count === 0) {
+                throw new InvalidInviteCodeError();
+            }
+
+            return tx.user.create({
+                data: { ...rest, passwordHash },
+                omit: { passwordHash: true },
+            });
         });
 
         try {
@@ -101,6 +123,12 @@ export async function POST(request: Request) {
             { status: 201 },
         );
     } catch (error: unknown) {
+        if (error instanceof InvalidInviteCodeError) {
+            return NextResponse.json(
+                { error: 'That invite code is invalid or has already been used.' },
+                { status: 403 },
+            );
+        }
         if (
             typeof error === 'object' &&
             error !== null &&
