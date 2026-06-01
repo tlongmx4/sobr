@@ -4,7 +4,7 @@ An AI companion app for people navigating sobriety. Not a therapist, not a chatb
 
 Built with Next.js, Prisma, and Claude.
 
-> 🚧 **Status:** in active development. Pre-launch hardening is ongoing; not yet for public use. See [TODO.md](./TODO.md) locally for the launch checklist.
+> **Status:** the public waitlist is **live in production** at [sobrandsteady.com](https://sobrandsteady.com). The production domains (sobrandsteady.com / sobrandsteady.app) serve the waitlist only: every other path redirects to `/waitlist`. The app itself is in **invite-only Phase 1 testing** — account creation requires an invite code, and full access is granted to testers manually rather than opened to the public. The complete app stays reachable on the Vercel deployment URL and localhost for development and testing. See [TODO.md](./TODO.md) locally for the launch checklist.
 
 ## Why
 
@@ -21,6 +21,8 @@ Most mental health and recovery apps default to clinical tone, gamification, or 
 - **Login rate limiting** — 5 failed attempts → 15-minute account lock.
 - **Account deletion** — Self-service from `/settings`. Cascades to chat history, check-ins, and tokens.
 - **Privacy page** — Plain-English disclosure at `/privacy` covering what's stored, what goes to Anthropic, and crisis-disclosure caveats.
+- **Public waitlist** — A standalone `/waitlist` page (email + optional name and note) is the only public entry point pre-launch. Submissions are per-IP rate limited; the IP is salted-hashed and never stored raw.
+- **Invite-only signup** — Account creation requires a valid invite code, enforced server-side at `POST /api/users` (not just in the UI), so it can't be bypassed by calling the API directly. Codes are single-use by default and are how Phase 1 testers are granted access.
 
 ## Safety design
 
@@ -82,24 +84,26 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## API routes
 
-| Method | Route                              | Auth | Description                                         |
-| ------ | ---------------------------------- | ---- | --------------------------------------------------- |
-| POST   | `/api/users`                       | No   | Create account; sends verification email            |
-| GET    | `/api/users`                       | Yes  | Get current user profile (passwordHash omitted)     |
-| PATCH  | `/api/users`                       | Yes  | Update profile                                      |
-| DELETE | `/api/users`                       | Yes  | Delete account; cascades and clears session cookie  |
-| POST   | `/api/onboarding`                  | Yes  | Save onboarding answers; stamp completion + consent |
-| POST   | `/api/auth/login`                  | No   | Login; rate-limited; rejects unverified accounts    |
-| POST   | `/api/auth/logout`                 | No   | Clear session cookie                                |
-| POST   | `/api/auth/verify`                 | No   | Consume a verification token                        |
-| POST   | `/api/auth/resend-verification`    | No   | Send a new verification email                       |
-| POST   | `/api/auth/forgot-password`        | No   | Send password reset email (always 200)              |
-| POST   | `/api/auth/reset-password`         | No   | Consume reset token + set new password              |
-| POST   | `/api/chat`                        | Yes  | Send message; streams Claude response               |
-| GET    | `/api/chat-messages`               | Yes  | Get chat history (paginated)                        |
-| POST   | `/api/check-in`                    | Yes  | Create a check-in                                   |
-| GET    | `/api/check-in`                    | Yes  | Get check-in history                                |
-| GET    | `/api/check-in/today`              | Yes  | Whether the user has checked in today               |
+| Method | Route                           | Auth | Description                                         |
+| ------ | ------------------------------- | ---- | --------------------------------------------------- |
+| POST   | `/api/users`                    | No   | Create account (invite code required)               |
+| GET    | `/api/users`                    | Yes  | Get current user profile (passwordHash omitted)     |
+| PATCH  | `/api/users`                    | Yes  | Update profile                                      |
+| DELETE | `/api/users`                    | Yes  | Delete account; cascades and clears session cookie  |
+| POST   | `/api/onboarding`               | Yes  | Save onboarding answers; stamp completion + consent |
+| POST   | `/api/auth/login`               | No   | Login; rate-limited; rejects unverified accounts    |
+| POST   | `/api/auth/logout`              | No   | Clear session cookie                                |
+| POST   | `/api/auth/verify`              | No   | Consume a verification token                        |
+| POST   | `/api/auth/resend-verification` | No   | Send a new verification email                       |
+| POST   | `/api/auth/forgot-password`     | No   | Send password reset email (always 200)              |
+| POST   | `/api/auth/reset-password`      | No   | Consume reset token + set new password              |
+| POST   | `/api/chat`                     | Yes  | Send message; streams Claude response               |
+| GET    | `/api/chat-messages`            | Yes  | Get chat history (paginated)                        |
+| POST   | `/api/check-in`                 | Yes  | Create a check-in                                   |
+| GET    | `/api/check-in`                 | Yes  | Get check-in history                                |
+| GET    | `/api/check-in/today`           | Yes  | Whether the user has checked in today               |
+| POST   | `/api/waitlist`                 | No   | Join the waitlist; per-IP rate limited              |
+| GET    | `/api/cron/purge-crisis-flags`  | Cron | Purge crisis flags older than 14 days               |
 
 ## Privacy
 
