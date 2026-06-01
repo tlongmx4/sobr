@@ -128,6 +128,29 @@ model Waitlist {
   createdAt DateTime @default(now())
 }
 
+// Invite codes gate new signups during the manual-access phase. Created by hand
+// (Prisma Studio or a seed) to grant testers access; checked server-side in the
+// signup route so the gate cannot be bypassed by calling the API directly.
+// `maxUses` = 1 is a single-use code; raise it for a shared cohort code. A code
+// is spent when `uses` reaches `maxUses`.
+model InviteCode {
+  id String @id @default(cuid())
+  code String @unique
+  label String?
+  maxUses Int @default(1)
+  uses Int @default(0)
+  createdAt DateTime @default(now())
+}
+
+// Per-IP fixed-window counter for the public waitlist endpoint. The IP is
+// salted-hashed (never stored raw) so no PII lands in the table. Rows are
+// disposable: a stale window is overwritten on the next request from that IP.
+model WaitlistRateLimit {
+  ipHash String @id
+  count Int @default(0)
+  windowStart DateTime @default(now())
+}
+
 model CrisisFlag {
   id String @id @default(cuid())
   userId String
