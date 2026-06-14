@@ -42,6 +42,9 @@ const updateUserSchema = z.object({
   name: nameSchema.optional(),
   username: usernameSchema.optional(),
   password: passwordSchema.optional(),
+  // Re-auth: required when changing a sensitive field (email/password). Loose
+  // string — it only needs to match the stored hash, not satisfy passwordSchema.
+  currentPassword: z.string().min(1).max(128).optional(),
   preferredName: preferredNameSchema.optional(),
   hobbies: hobbiesSchema.optional(),
   substances: substancesSchema.optional(),
@@ -161,8 +164,37 @@ export async function PATCH(request: Request) {
         return NextResponse.json({ error: parsed.error.issues }, { status: 400 });
     }
 
-    const { password, ...rest } = parsed.data;
+    // currentPassword is re-auth only: strip it so it can never reach the update.
+    const { password, currentPassword, ...rest } = parsed.data;
     const data: Record<string, unknown> = { ...rest };
+
+    // Changing email or password could silently take over the account and lock
+    // the real user out, so require the current password to prove identity.
+    const changingSensitive = rest.email !== undefined || password !== undefined;
+    if (changingSensitive) {
+        if (!currentPassword) {
+            return NextResponse.json(
+                { error: 'Current password is required to change your email or password.' },
+                { status: 400 },
+            );
+        }
+
+        const account = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { passwordHash: true },
+        });
+        if (!account) {
+            return NextResponse.json({ error: 'User not found' }, { status: 404 });
+        }
+
+        const reauthOk = await bcrypt.compare(currentPassword, account.passwordHash);
+        if (!reauthOk) {
+            return NextResponse.json(
+                { error: 'Current password is incorrect.' },
+                { status: 403 },
+            );
+        }
+    }
 
     if (password) {
         data.passwordHash = await bcrypt.hash(password, 10);
