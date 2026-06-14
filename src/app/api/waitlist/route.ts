@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createHash } from 'crypto';
 import { prisma } from '@/lib/prisma';
+import { assertSameOrigin } from '@/lib/csrf';
 import { z } from 'zod';
 
 // Public, unauthenticated capture endpoint. Email + optional name/note only.
@@ -56,6 +57,9 @@ async function isRateLimited(ipHash: string): Promise<boolean> {
 
 export async function POST(request: Request) {
     try {
+        const csrf = assertSameOrigin(request);
+        if (csrf) return csrf;
+
         const ipHash = hashIp(getClientIp(request));
         if (await isRateLimited(ipHash)) {
             return NextResponse.json(

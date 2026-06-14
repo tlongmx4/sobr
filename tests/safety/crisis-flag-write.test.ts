@@ -51,6 +51,7 @@ const SECRET_TEXT = "I have the pills and I'm in the car tonight";
 function makeReq(text: string) {
   return new Request("http://localhost/api/chat", {
     method: "POST",
+    headers: { host: "localhost", origin: "http://localhost" },
     body: JSON.stringify({
       messages: [{ role: "user", parts: [{ type: "text", text }] }],
     }),

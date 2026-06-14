@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUserId } from '@/lib/auth';
+import { assertSameOrigin } from '@/lib/csrf';
 import { createToken, VERIFICATION_TTL_MS } from '@/lib/tokens';
 import { sendVerificationEmail } from '@/lib/email';
 import { z } from 'zod';
@@ -72,6 +73,9 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+    const csrf = assertSameOrigin(request);
+    if (csrf) return csrf;
+
     const body = await request.json();
     const parsed = createUserSchema.safeParse(body);
 
@@ -152,6 +156,9 @@ export async function POST(request: Request) {
 }
 
 export async function PATCH(request: Request) {
+    const csrf = assertSameOrigin(request);
+    if (csrf) return csrf;
+
     const userId = await getCurrentUserId();
     if (!userId) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -227,7 +234,10 @@ export async function PATCH(request: Request) {
     }
 }
 
-export async function DELETE() {
+export async function DELETE(request: Request) {
+    const csrf = assertSameOrigin(request);
+    if (csrf) return csrf;
+
     const userId = await getCurrentUserId();
     if (!userId) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

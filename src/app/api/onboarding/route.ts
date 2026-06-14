@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUserId } from '@/lib/auth';
+import { assertSameOrigin } from '@/lib/csrf';
 import { DISCLAIMER_VERSION } from '@/lib/onboarding';
 import { z } from 'zod';
 import { SobrietyStatus, FrameworkPreference } from '@prisma/client';
@@ -23,6 +24,9 @@ const onboardingSchema = z.object({
 
 export async function POST(request: Request) {
     try {
+        const csrf = assertSameOrigin(request);
+        if (csrf) return csrf;
+
         const userId = await getCurrentUserId();
         if (!userId) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

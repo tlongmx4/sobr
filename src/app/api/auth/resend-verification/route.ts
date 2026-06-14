@@ -3,10 +3,14 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { createToken, VERIFICATION_TTL_MS } from "@/lib/tokens";
 import { sendVerificationEmail } from "@/lib/email";
+import { assertSameOrigin } from "@/lib/csrf";
 
 const schema = z.object({ email: z.email() });
 
 export async function POST(request: Request) {
+  const csrf = assertSameOrigin(request);
+  if (csrf) return csrf;
+
   const body = await request.json().catch(() => null);
   const parsed = schema.safeParse(body);
   if (!parsed.success) {
