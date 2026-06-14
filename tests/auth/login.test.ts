@@ -29,6 +29,7 @@ const MAX_FAILED_ATTEMPTS = 5;
 function loginReq(body: unknown) {
   return new Request("http://localhost/api/auth/login", {
     method: "POST",
+    headers: { host: "localhost", origin: "http://localhost" },
     body: JSON.stringify(body),
   });
 }
