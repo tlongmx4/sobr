@@ -37,6 +37,7 @@ const USER_ID = "u_1";
 function patchReq(body: unknown) {
   return new Request("http://localhost/api/users", {
     method: "PATCH",
+    headers: { host: "localhost", origin: "http://localhost" },
     body: JSON.stringify(body),
   });
 }
@@ -47,6 +48,21 @@ beforeEach(() => {
   hoisted.findUnique.mockResolvedValue({ passwordHash: "stored-hash" });
   hoisted.update.mockResolvedValue({ id: USER_ID });
   hoisted.hash.mockResolvedValue("new-hash");
+});
+
+describe("PATCH /api/users — CSRF guard", () => {
+  it("rejects a cross-origin request with 403 before any work", async () => {
+    const res = await PATCH(
+      new Request("http://localhost/api/users", {
+        method: "PATCH",
+        headers: { host: "localhost", origin: "https://evil.com" },
+        body: JSON.stringify({ preferredName: "Sam" }),
+      }),
+    );
+    expect(res.status).toBe(403);
+    expect(hoisted.getCurrentUserId).not.toHaveBeenCalled();
+    expect(hoisted.update).not.toHaveBeenCalled();
+  });
 });
 
 describe("PATCH /api/users — auth gate", () => {

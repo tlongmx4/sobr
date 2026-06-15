@@ -20,6 +20,7 @@ import { POST } from "@/app/api/waitlist/route";
 function waitlistReq(body: unknown) {
   return new Request("http://localhost/api/waitlist", {
     method: "POST",
+    headers: { host: "localhost", origin: "http://localhost" },
     body: JSON.stringify(body),
   });
 }

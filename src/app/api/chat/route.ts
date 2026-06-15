@@ -3,6 +3,7 @@ import { chatModel } from "@/lib/ai";
 import { buildSystemPrompt } from "@/lib/context";
 import { classifyRisk } from "@/lib/safety/classifier";
 import { getCurrentUserId } from "@/lib/auth";
+import { assertSameOrigin } from "@/lib/csrf";
 import { prisma } from "@/lib/prisma";
 
 export const maxDuration = 60;
@@ -20,6 +21,9 @@ function extractText(message: UIMessage): string {
 }
 
 export async function POST(req: Request) {
+  const csrf = assertSameOrigin(req);
+  if (csrf) return csrf;
+
   const userId = await getCurrentUserId();
   if (!userId) return new Response("Unauthorized", { status: 401 });
 

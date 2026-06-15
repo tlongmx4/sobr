@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getCurrentUserId } from '@/lib/auth';
+import { assertSameOrigin } from '@/lib/csrf';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 
@@ -31,6 +32,9 @@ export async function GET() {
 
 export async function POST(request: Request) {
     try {
+        const csrf = assertSameOrigin(request);
+        if (csrf) return csrf;
+
         const userId = await getCurrentUserId();
         if (!userId) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

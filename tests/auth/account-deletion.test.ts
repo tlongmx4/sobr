@@ -25,6 +25,14 @@ vi.mock("@/lib/tokens", () => ({ createToken: vi.fn(), VERIFICATION_TTL_MS: 0 })
 
 import { DELETE } from "@/app/api/users/route";
 
+// Same-origin request so the CSRF guard (assertSameOrigin) lets the handler run.
+function delReq() {
+  return new Request("http://localhost/api/users", {
+    method: "DELETE",
+    headers: { host: "localhost", origin: "http://localhost" },
+  });
+}
+
 beforeEach(() => {
   hoisted.userId = "u_1";
   hoisted.userDelete.mockReset().mockResolvedValue({});
@@ -34,20 +42,20 @@ beforeEach(() => {
 describe("account deletion", () => {
   it("rejects an unauthenticated request and deletes nothing", async () => {
     hoisted.userId = null;
-    const res = await DELETE();
+    const res = await DELETE(delReq());
     expect(res.status).toBe(401);
     expect(hoisted.userDelete).not.toHaveBeenCalled();
   });
 
   it("deletes only the current user (scoped by id from the session, never the body)", async () => {
-    const res = await DELETE();
+    const res = await DELETE(delReq());
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ success: true });
     expect(hoisted.userDelete).toHaveBeenCalledWith({ where: { id: "u_1" } });
   });
 
   it("clears the session cookie after deletion", async () => {
-    await DELETE();
+    await DELETE(delReq());
     expect(hoisted.cookieDelete).toHaveBeenCalledWith("token");
   });
 });

@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { prisma } from '@/lib/prisma';
+import { assertSameOrigin } from '@/lib/csrf';
 import 'dotenv/config';
 
 const SEVEN_DAYS_SECONDS = 60 * 60 * 24 * 7;
@@ -11,6 +12,9 @@ const LOCK_DURATION_MS = 15 * 60 * 1000;
 
 export async function POST(request: Request) {
   try {
+    const csrf = assertSameOrigin(request);
+    if (csrf) return csrf;
+
     const body = await request.json();
     const { email, password } = body;
 
