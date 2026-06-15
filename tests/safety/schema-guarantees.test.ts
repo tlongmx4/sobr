@@ -40,7 +40,7 @@ describe("CrisisFlag schema — metadata only", () => {
 });
 
 describe("Cascade delete — right to be forgotten", () => {
-  it.each(["CheckIn", "ChatMessage", "Token", "CrisisFlag"])(
+  it.each(["CheckIn", "ChatMessage", "Token", "CrisisFlag", "EarnedCoin"])(
     "%s cascade-deletes with its User",
     (model) => {
       const block = modelBlock(model);

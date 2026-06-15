@@ -3,6 +3,7 @@ import { getCurrentUserId } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { DISCLAIMER_VERSION } from "@/lib/onboarding";
 import { buildHistoryDays, historyWindowStart } from "@/lib/checkins";
+import { recordMilestoneCoins } from "@/lib/milestones";
 import type { UIMessage } from "ai";
 import { Dashboard } from "./Dashboard";
 
@@ -24,6 +25,7 @@ export default async function HomePage() {
         preferredName: true,
         sobrietyStatus: true,
         sobrietyDate: true,
+        showMilestones: true,
         onboardingCompletedAt: true,
         disclaimersVersion: true,
       },
@@ -50,6 +52,20 @@ export default async function HomePage() {
   ]);
 
   if (!user) redirect("/login");
+
+  // Record any milestones crossed in the current run. Runs regardless of
+  // showMilestones (that toggle only gates display), and is a no-op when
+  // sobrietyDate is null or the run's coins already exist.
+  await recordMilestoneCoins(userId, user.sobrietyDate, now);
+
+  // Most recently earned coin in the CURRENT run only, for the dashboard chip.
+  const latestCoin = user.sobrietyDate
+    ? await prisma.earnedCoin.findFirst({
+        where: { userId, earnedAt: { gte: user.sobrietyDate } },
+        orderBy: { earnedAt: "desc" },
+        select: { milestone: true, earnedAt: true },
+      })
+    : null;
 
   const history = buildHistoryDays(
     historyPoints.map((p) => ({
@@ -81,7 +97,16 @@ export default async function HomePage() {
         sobrietyDate: user.sobrietyDate
           ? user.sobrietyDate.toISOString()
           : null,
+        showMilestones: user.showMilestones,
       }}
+      latestCoin={
+        latestCoin
+          ? {
+              milestone: latestCoin.milestone,
+              earnedAt: latestCoin.earnedAt.toISOString(),
+            }
+          : null
+      }
       initialMessages={initialMessages}
       todayCheckIn={todayCheckIn}
       needsOnboarding={needsOnboarding}

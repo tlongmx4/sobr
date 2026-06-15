@@ -51,6 +51,7 @@ const updateUserSchema = z.object({
   sobrietyStatus: sobrietyStatusSchema.optional(),
   sobrietyDate: sobrietyDateSchema.optional(),
   frameworkPreference: frameworkPreferenceSchema.optional(),
+  showMilestones: z.boolean().optional(),
 });
 
 export async function GET() {
