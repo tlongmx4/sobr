@@ -66,6 +66,7 @@ model User {
   substances String[]
   sobrietyStatus SobrietyStatus @default(EXPLORING)
   sobrietyDate DateTime?
+  showMilestones Boolean @default(false)
   frameworkPreference FrameworkPreference @default(NEITHER)
   onboardingCompletedAt DateTime?
   disclaimersAcceptedAt DateTime?
@@ -78,6 +79,24 @@ model User {
   chatMessages ChatMessage[]
   tokens Token[]
   crisisFlags CrisisFlag[]
+  earnedCoins EarnedCoin[]
+}
+
+// Sobriety milestone coins. Opt-in display (User.showMilestones), but rows are
+// recorded for any user with a sobrietyDate. A milestone can be earned more than
+// once across separate sobriety runs, so (userId, milestone) is deliberately NOT
+// unique. earnedAt is the moment the threshold was crossed (sobrietyDate +
+// thresholdMs); "this run" is everything with earnedAt >= the current
+// sobrietyDate. Resets never delete past coins. Cascade-deletes with the user.
+model EarnedCoin {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  milestone String // milestone id, references MILESTONES[].id in src/lib/milestones.ts
+  earnedAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
 }
 
 model Token {

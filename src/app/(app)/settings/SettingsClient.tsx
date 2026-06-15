@@ -14,6 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import {
   Card,
   CardContent,
@@ -28,6 +29,7 @@ type Props = {
     preferredName: string | null;
     username: string;
     email: string;
+    showMilestones: boolean;
   };
 };
 
@@ -35,6 +37,35 @@ export function SettingsClient({ user }: Props) {
   const router = useRouter();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmText, setConfirmText] = useState("");
+  const [showMilestones, setShowMilestones] = useState(user.showMilestones);
+
+  const milestonesMutation = useMutation({
+    mutationFn: async (next: boolean) => {
+      const res = await fetch("/api/users", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ showMilestones: next }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(
+          typeof data?.error === "string"
+            ? data.error
+            : "Couldn't update milestones",
+        );
+      }
+      return res.json();
+    },
+    onError: (_err, next) => {
+      // Roll the toggle back if the save failed.
+      setShowMilestones(!next);
+    },
+  });
+
+  function handleMilestonesChange(next: boolean) {
+    setShowMilestones(next);
+    milestonesMutation.mutate(next);
+  }
 
   const deleteMutation = useMutation({
     mutationFn: async () => {
@@ -72,6 +103,37 @@ export function SettingsClient({ user }: Props) {
           />
           <Field label="Username" value={user.username} />
           <Field label="Email" value={user.email} />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Milestones</CardTitle>
+          <CardDescription>
+            Show milestone coins on your dashboard as you reach them. This is
+            just for you, and turning it off only hides them. Nothing you have
+            earned is ever deleted.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between gap-4">
+            <Label htmlFor="show-milestones" className="font-normal">
+              Show milestone coins
+            </Label>
+            <Switch
+              id="show-milestones"
+              checked={showMilestones}
+              onCheckedChange={handleMilestonesChange}
+              disabled={milestonesMutation.isPending}
+            />
+          </div>
+          {milestonesMutation.isError && (
+            <p className="mt-2 text-sm text-destructive">
+              {milestonesMutation.error instanceof Error
+                ? milestonesMutation.error.message
+                : "Something went wrong"}
+            </p>
+          )}
         </CardContent>
       </Card>
 

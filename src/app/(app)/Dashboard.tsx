@@ -18,6 +18,7 @@ import {
 import { useAuth } from "@/context/auth";
 import { BrandMark } from "@/components/brand-mark";
 import type { HistoryDay } from "@/lib/checkins";
+import { coinLabel } from "@/lib/milestones";
 import { CheckInDialog } from "./CheckInDialog";
 import { CheckInHistory } from "./CheckInHistory";
 import { OnboardingDialog } from "./OnboardingDialog";
@@ -28,7 +29,13 @@ type DashboardUser = {
   preferredName: string | null;
   sobrietyStatus: string;
   sobrietyDate: string | null;
+  showMilestones: boolean;
 };
+
+type LatestCoin = {
+  milestone: string;
+  earnedAt: string;
+} | null;
 
 type TodayCheckIn = {
   moodRating: number;
@@ -38,6 +45,7 @@ type TodayCheckIn = {
 
 type Props = {
   user: DashboardUser;
+  latestCoin: LatestCoin;
   initialMessages: UIMessage[];
   todayCheckIn: TodayCheckIn;
   needsOnboarding: boolean;
@@ -70,6 +78,7 @@ function extractText(message: UIMessage): string {
 
 export function Dashboard({
   user,
+  latestCoin,
   initialMessages,
   todayCheckIn,
   needsOnboarding,
@@ -137,6 +146,12 @@ export function Dashboard({
       <div className="flex flex-1 overflow-hidden">
         <aside className="hidden w-80 shrink-0 flex-col gap-3 overflow-y-auto border-r bg-muted/30 p-4 md:flex">
           <SobrietyCard user={user} />
+          {user.showMilestones && (
+            <MilestoneCard
+              latestCoin={latestCoin}
+              hasSobrietyDate={!!user.sobrietyDate}
+            />
+          )}
           <CheckInCard
             todayCheckIn={todayCheckIn}
             onCheckIn={() => setCheckInOpen(true)}
@@ -250,6 +265,41 @@ function SobrietyCard({ user }: { user: DashboardUser }) {
   );
 }
 
+function MilestoneCard({
+  latestCoin,
+  hasSobrietyDate,
+}: {
+  latestCoin: LatestCoin;
+  hasSobrietyDate: boolean;
+}) {
+  return (
+    <Card size="sm">
+      <CardHeader>
+        <CardTitle className="text-muted-foreground text-xs uppercase tracking-wide font-medium">
+          Latest milestone
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        {latestCoin ? (
+          <Link
+            href="/coins"
+            className="inline-flex items-center gap-1.5 rounded-full border bg-background px-3 py-1 text-sm font-medium ring-1 ring-border transition-colors hover:bg-muted"
+          >
+            <Sparkles className="size-3.5 text-primary" />
+            {coinLabel(latestCoin.milestone)}
+          </Link>
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            {hasSobrietyDate
+              ? "Working toward your first milestone."
+              : "Add a sobriety date to start earning milestones."}
+          </p>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 const MOOD_EMOJI = ["😔", "😕", "😐", "🙂", "😄"];
 const ENERGY_EMOJI = ["🥱", "😴", "😐", "🙂", "💪"];
 const CRAVING_EMOJI = ["😌", "🙂", "😐", "😟", "😣"];
@@ -334,6 +384,12 @@ function QuickLinksCard() {
         </CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-1">
+        <Link
+          href="/coins"
+          className="text-left text-sm text-muted-foreground hover:text-foreground py-1"
+        >
+          Milestones
+        </Link>
         <Link
           href="/settings"
           className="text-left text-sm text-muted-foreground hover:text-foreground py-1"
