@@ -3,7 +3,7 @@ import { getCurrentUserId } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { DISCLAIMER_VERSION } from "@/lib/onboarding";
 import { buildHistoryDays, historyWindowStart } from "@/lib/checkins";
-import { recordMilestoneCoins } from "@/lib/milestones";
+import { currentMilestone, recordMilestoneCoins } from "@/lib/milestones";
 import type { UIMessage } from "ai";
 import { Dashboard } from "./Dashboard";
 
@@ -58,14 +58,10 @@ export default async function HomePage() {
   // sobrietyDate is null or the run's coins already exist.
   await recordMilestoneCoins(userId, user.sobrietyDate, now);
 
-  // Most recently earned coin in the CURRENT run only, for the dashboard chip.
-  const latestCoin = user.sobrietyDate
-    ? await prisma.earnedCoin.findFirst({
-        where: { userId, earnedAt: { gte: user.sobrietyDate } },
-        orderBy: { earnedAt: "desc" },
-        select: { milestone: true, earnedAt: true },
-      })
-    : null;
+  // Highest milestone for the current sobrietyDate, for the dashboard chip.
+  // Computed directly from the date (not from earned coins) so it always tracks
+  // the current run and can't get stuck on a coin left over from a date reset.
+  const latestCoin = currentMilestone(user.sobrietyDate, now);
 
   const history = buildHistoryDays(
     historyPoints.map((p) => ({
