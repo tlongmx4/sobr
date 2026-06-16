@@ -3,7 +3,8 @@ import { Sparkles } from "lucide-react";
 import { getCurrentUserId } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { SiteHeader } from "@/components/site-header";
-import { MILESTONES, coinLabel } from "@/lib/milestones";
+import { MILESTONES } from "@/lib/milestones";
+import { Coin } from "@/components/coin";
 import { Card, CardContent } from "@/components/ui/card";
 
 // Ordering index so the collection reads as a timeline (24 hours first, years
@@ -67,18 +68,18 @@ export default async function CoinsPage() {
               </CardContent>
             </Card>
           ) : (
-            <ul className="flex flex-wrap gap-3">
+            <ul className="grid grid-cols-3 gap-x-4 gap-y-6 sm:grid-cols-4">
               {groups.map((g) => (
-                <li key={g.milestone}>
-                  <div className="inline-flex items-center gap-2 rounded-full border bg-background px-4 py-2 text-sm ring-1 ring-border">
-                    <Sparkles className="size-3.5 text-primary" />
-                    <span className="font-medium">{coinLabel(g.milestone)}</span>
-                    {g.count > 1 && (
-                      <span className="text-xs text-muted-foreground">
-                        earned {g.count}&times;
-                      </span>
-                    )}
-                  </div>
+                <li
+                  key={g.milestone}
+                  className="flex flex-col items-center gap-2 text-center"
+                >
+                  <Coin milestone={g.milestone} />
+                  {g.count > 1 && (
+                    <span className="text-xs text-muted-foreground">
+                      earned {g.count}&times;
+                    </span>
+                  )}
                 </li>
               ))}
             </ul>

@@ -16,10 +16,21 @@ export default async function SettingsPage() {
       username: true,
       email: true,
       showMilestones: true,
+      sobrietyDate: true,
     },
   });
 
   if (!user) redirect("/login");
+
+  // Serialize the date to YYYY-MM-DD so it round-trips cleanly through the
+  // <input type="date"> and back to the PATCH endpoint (which coerces the same
+  // UTC-midnight value onboarding stores).
+  const clientUser = {
+    ...user,
+    sobrietyDate: user.sobrietyDate
+      ? user.sobrietyDate.toISOString().slice(0, 10)
+      : null,
+  };
 
   return (
     <div className="min-h-dvh bg-background">
@@ -30,7 +41,7 @@ export default async function SettingsPage() {
           Settings
         </h1>
         <div className="mt-8">
-          <SettingsClient user={user} />
+          <SettingsClient user={clientUser} />
         </div>
       </main>
     </div>

@@ -21,7 +21,12 @@ vi.mock("@/lib/prisma", () => ({
   },
 }));
 
-import { MILESTONES, coinLabel, recordMilestoneCoins } from "@/lib/milestones";
+import {
+  MILESTONES,
+  coinLabel,
+  coinParts,
+  recordMilestoneCoins,
+} from "@/lib/milestones";
 
 const HOUR = 60 * 60 * 1000;
 const DAY = 24 * HOUR;
@@ -52,6 +57,12 @@ describe("MILESTONES constant", () => {
   it("coinLabel resolves ids and falls back to the raw id", () => {
     expect(coinLabel("30d")).toBe("30 days");
     expect(coinLabel("unknown")).toBe("unknown");
+  });
+
+  it("coinParts splits a label into value and unit for the coin face", () => {
+    expect(coinParts("30d")).toEqual({ value: "30", unit: "days" });
+    expect(coinParts("24h")).toEqual({ value: "24", unit: "hours" });
+    expect(coinParts("1y")).toEqual({ value: "1", unit: "year" });
   });
 });
 

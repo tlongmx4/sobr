@@ -59,6 +59,14 @@ export function coinLabel(id: string): string {
   return LABEL_BY_ID.get(id) ?? id;
 }
 
+// Splits a milestone label into the parts a coin face shows: a value and a
+// unit, e.g. "30 days" -> { value: "30", unit: "days" }. Every label is in
+// "<number> <unit>" form; an unrecognized id degrades to value-only.
+export function coinParts(id: string): { value: string; unit: string } {
+  const [value, ...rest] = coinLabel(id).split(" ");
+  return { value, unit: rest.join(" ") };
+}
+
 // Records any milestones crossed in the CURRENT run that aren't already on
 // record for this run. Idempotent per run: re-running does nothing once the
 // run's coins exist. Safe to call on every dashboard load.

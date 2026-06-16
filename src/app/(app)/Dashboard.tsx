@@ -18,7 +18,7 @@ import {
 import { useAuth } from "@/context/auth";
 import { BrandMark } from "@/components/brand-mark";
 import type { HistoryDay } from "@/lib/checkins";
-import { coinLabel } from "@/lib/milestones";
+import { Coin } from "@/components/coin";
 import { CheckInDialog } from "./CheckInDialog";
 import { CheckInHistory } from "./CheckInHistory";
 import { OnboardingDialog } from "./OnboardingDialog";
@@ -283,10 +283,12 @@ function MilestoneCard({
         {latestCoin ? (
           <Link
             href="/coins"
-            className="inline-flex items-center gap-1.5 rounded-full border bg-background px-3 py-1 text-sm font-medium ring-1 ring-border transition-colors hover:bg-muted"
+            className="group flex flex-col items-center gap-2 py-1 text-center"
           >
-            <Sparkles className="size-3.5 text-primary" />
-            {coinLabel(latestCoin.milestone)}
+            <Coin milestone={latestCoin.milestone} />
+            <span className="text-xs text-muted-foreground group-hover:text-foreground">
+              See all milestones
+            </span>
           </Link>
         ) : (
           <p className="text-sm text-muted-foreground">
