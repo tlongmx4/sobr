@@ -67,6 +67,32 @@ export function coinParts(id: string): { value: string; unit: string } {
   return { value, unit: rest.join(" ") };
 }
 
+// Highest milestone crossed for the current sobrietyDate. Pure function of
+// (sobrietyDate, now): independent of any persisted EarnedCoin rows, so it's
+// immune to coins left over from a date reset. The dashboard chip uses this
+// instead of querying earned coins, which can carry stale earnedAt values
+// across a reset.
+export function currentMilestone(
+  sobrietyDate: Date | null,
+  now: Date,
+): { milestone: string; earnedAt: Date } | null {
+  if (!sobrietyDate) return null;
+
+  const elapsed = now.getTime() - sobrietyDate.getTime();
+  let current: Milestone | null = null;
+  for (const m of MILESTONES) {
+    // MILESTONES is ascending; the last one crossed is the highest.
+    if (elapsed >= m.thresholdMs) current = m;
+    else break;
+  }
+  if (!current) return null;
+
+  return {
+    milestone: current.id,
+    earnedAt: new Date(sobrietyDate.getTime() + current.thresholdMs),
+  };
+}
+
 // Records any milestones crossed in the CURRENT run that aren't already on
 // record for this run. Idempotent per run: re-running does nothing once the
 // run's coins exist. Safe to call on every dashboard load.
