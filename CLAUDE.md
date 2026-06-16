@@ -69,6 +69,13 @@ It is **not** a mental health app, clinical tool, or healthcare service. Positio
 - For large refactors, propose the plan first and wait for approval before making changes
 - When in doubt, ask before changing
 
+## Git workflow
+
+The site is deployed. For any code change, automatically start a new branch
+off the latest main at the beginning of the work — don't ask, just do it.
+Use a descriptive branch name (feature/..., fix/..., harden/...).
+I handle all commits and merges myself.
+
 ## Pre-launch state
 
 See `TODO.md` for the full pre-launch hardening list. Critical items (legal, safety, deploy basics) must land before any tester touches the app. The "Already done" section in TODO.md tracks what's complete.
