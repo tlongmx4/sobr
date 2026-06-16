@@ -30,8 +30,21 @@ type Props = {
     username: string;
     email: string;
     showMilestones: boolean;
+    // YYYY-MM-DD, or null if never set.
+    sobrietyDate: string | null;
   };
 };
+
+// Format a YYYY-MM-DD string for display. Parse as UTC (matching how the date is
+// stored) so the day shown never drifts by the viewer's timezone.
+function formatDate(ymd: string): string {
+  return new Date(ymd).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    timeZone: "UTC",
+  });
+}
 
 export function SettingsClient({ user }: Props) {
   const router = useRouter();
@@ -66,6 +79,36 @@ export function SettingsClient({ user }: Props) {
     setShowMilestones(next);
     milestonesMutation.mutate(next);
   }
+
+  // Sobriety date. Defaults the picker to today when no date is set yet, and caps
+  // it at today (a start date in the future would make the day count negative).
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const [dateInput, setDateInput] = useState(user.sobrietyDate ?? todayStr);
+  const [sobrietyConfirmOpen, setSobrietyConfirmOpen] = useState(false);
+  const dateChanged = dateInput !== (user.sobrietyDate ?? "");
+
+  const sobrietyMutation = useMutation({
+    mutationFn: async (next: string) => {
+      const res = await fetch("/api/users", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sobrietyDate: next }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(
+          typeof data?.error === "string"
+            ? data.error
+            : "Couldn't update your date",
+        );
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      setSobrietyConfirmOpen(false);
+      router.refresh();
+    },
+  });
 
   const deleteMutation = useMutation({
     mutationFn: async () => {
@@ -103,6 +146,52 @@ export function SettingsClient({ user }: Props) {
           />
           <Field label="Username" value={user.username} />
           <Field label="Email" value={user.email} />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Sobriety</CardTitle>
+          <CardDescription>
+            Your start date sets the day count on your dashboard. If you have had
+            a setback, you can start a fresh count from a new date. The coins you
+            have already earned stay with you.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-3 items-center gap-2">
+            <span className="text-sm text-muted-foreground">
+              Current start date
+            </span>
+            <span className="col-span-2 text-sm">
+              {user.sobrietyDate ? formatDate(user.sobrietyDate) : "Not set yet"}
+            </span>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="sobrietyDate">New start date</Label>
+            <Input
+              id="sobrietyDate"
+              type="date"
+              value={dateInput}
+              max={todayStr}
+              onChange={(e) => setDateInput(e.target.value)}
+              className="w-auto"
+              disabled={sobrietyMutation.isPending}
+            />
+          </div>
+          <Button
+            onClick={() => setSobrietyConfirmOpen(true)}
+            disabled={!dateInput || !dateChanged || sobrietyMutation.isPending}
+          >
+            Save date
+          </Button>
+          {sobrietyMutation.isError && !sobrietyConfirmOpen && (
+            <p className="text-sm text-destructive">
+              {sobrietyMutation.error instanceof Error
+                ? sobrietyMutation.error.message
+                : "Something went wrong"}
+            </p>
+          )}
         </CardContent>
       </Card>
 
@@ -154,6 +243,50 @@ export function SettingsClient({ user }: Props) {
           </Button>
         </CardContent>
       </Card>
+
+      <Dialog
+        open={sobrietyConfirmOpen}
+        onOpenChange={(o) => {
+          setSobrietyConfirmOpen(o);
+          if (!o) sobrietyMutation.reset();
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Update your sobriety date?</DialogTitle>
+            <DialogDescription>
+              Your day count will start fresh from {formatDate(dateInput)}. The
+              coins you have already earned stay with you, nothing is deleted.
+            </DialogDescription>
+          </DialogHeader>
+
+          {sobrietyMutation.isError && (
+            <p className="text-sm text-destructive">
+              {sobrietyMutation.error instanceof Error
+                ? sobrietyMutation.error.message
+                : "Something went wrong"}
+            </p>
+          )}
+
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setSobrietyConfirmOpen(false)}
+              disabled={sobrietyMutation.isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={() => sobrietyMutation.mutate(dateInput)}
+              disabled={sobrietyMutation.isPending}
+            >
+              {sobrietyMutation.isPending ? "Saving..." : "Update date"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog
         open={confirmOpen}
