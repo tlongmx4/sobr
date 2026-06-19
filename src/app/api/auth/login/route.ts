@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { prisma } from '@/lib/prisma';
 import { assertSameOrigin } from '@/lib/csrf';
+import { DUMMY_PASSWORD_HASH } from '@/lib/passwords';
 import 'dotenv/config';
 
 const SEVEN_DAYS_SECONDS = 60 * 60 * 24 * 7;
@@ -27,6 +28,9 @@ export async function POST(request: Request) {
 
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
+      // Run a comparison against a dummy hash so a missing account takes the same
+      // time as a wrong password, closing the timing-based enumeration channel.
+      await bcrypt.compare(password, DUMMY_PASSWORD_HASH);
       return NextResponse.json(
         { error: 'Invalid email or password' },
         { status: 401 }

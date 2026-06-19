@@ -4,11 +4,16 @@ import { buildSystemPrompt } from "@/lib/context";
 import { classifyRisk } from "@/lib/safety/classifier";
 import { getCurrentUserId } from "@/lib/auth";
 import { assertSameOrigin } from "@/lib/csrf";
+import { checkRateLimit } from "@/lib/rate-limit";
 import { prisma } from "@/lib/prisma";
 
 export const maxDuration = 60;
 
 const MAX_USER_MESSAGE_LENGTH = 10000;
+// Per-user cap on chat turns. Generous for a real conversation but bounds the
+// cost/abuse of the (expensive) Anthropic call if a session is automated.
+const RATE_WINDOW_MS = 60 * 1000; // 1 minute
+const RATE_MAX = 20;
 // Number of recent turns the crisis classifier sees, so it can read trajectory
 // (compounding hopelessness, tone shift) and not just the latest message.
 const CLASSIFIER_WINDOW = 6;
@@ -26,6 +31,17 @@ export async function POST(req: Request) {
 
   const userId = await getCurrentUserId();
   if (!userId) return new Response("Unauthorized", { status: 401 });
+
+  const { limited, retryAfterSeconds } = await checkRateLimit(
+    `chat:${userId}`,
+    { windowMs: RATE_WINDOW_MS, max: RATE_MAX },
+  );
+  if (limited) {
+    return new Response("Too many requests", {
+      status: 429,
+      headers: { "Retry-After": String(retryAfterSeconds) },
+    });
+  }
 
   let body: { messages?: UIMessage[] };
   try {

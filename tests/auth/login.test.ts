@@ -61,7 +61,9 @@ describe("login — input + lookup", () => {
     const res = await POST(loginReq({ email: "nope@b.com", password: "x" }));
     expect(res.status).toBe(401);
     expect((await res.json()).error).toBe("Invalid email or password");
-    expect(hoisted.compare).not.toHaveBeenCalled();
+    // Still runs a bcrypt comparison (against a dummy hash) so an unknown email
+    // takes the same time as a wrong password — closes the timing oracle.
+    expect(hoisted.compare).toHaveBeenCalledTimes(1);
   });
 });
 

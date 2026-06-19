@@ -1,5 +1,21 @@
 import { prisma } from "@/lib/prisma";
 
+// User-supplied fields (name, journal text, hobbies, substances) are interpolated
+// into the dynamic system prompt. Neutralize anything that could break out of the
+// labeled block or impersonate instructions/delimiters before it reaches the model.
+// Scope: a user can only affect their own companion, so this is hardening, not a
+// cross-user boundary — but it keeps a stray "ignore previous instructions" inert.
+function sanitizeUserText(value: string): string {
+  return value
+    // Strip our own block delimiters so input can't forge a section boundary.
+    .replace(/<\/?user_data>/gi, "")
+    // Drop control chars (incl. newlines) that could fake structure...
+    .replace(/[\u0000-\u001F\u007F]+/g, " ")
+    // ...then collapse the whitespace they leave behind.
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 export type SystemPrompt = {
   /** Static persona + voice + crisis rules. Cached by the model provider. */
   stable: string;
@@ -75,17 +91,26 @@ export async function buildSystemPrompt(userId: string): Promise<SystemPrompt> {
 
   if (!user) throw new Error("User not found");
 
-  const displayName = user.preferredName || user.name;
+  const displayName = sanitizeUserText(user.preferredName || user.name);
   const sobrietyLine = user.sobrietyDate
     ? `Sobriety date: ${user.sobrietyDate.toISOString().split("T")[0]}`
     : `Sobriety status: ${user.sobrietyStatus}`;
 
+  const hobbies =
+    user.hobbies.map(sanitizeUserText).filter(Boolean).join(", ") ||
+    "none listed";
+  const substances =
+    user.substances.map(sanitizeUserText).filter(Boolean).join(", ") ||
+    "none listed";
+
   const checkInSummary = user.checkIns.length
     ? user.checkIns
-        .map(
-          (c) =>
-            `- ${c.createdAt.toISOString().split("T")[0]}: mood ${c.moodRating}/5, energy ${c.energyRating}/5${c.cravingRating ? `, craving ${c.cravingRating}/5` : ""}${c.journalEntry ? ` — "${c.journalEntry}"` : ""}`
-        )
+        .map((c) => {
+          const journal = c.journalEntry
+            ? ` — "${sanitizeUserText(c.journalEntry)}"`
+            : "";
+          return `- ${c.createdAt.toISOString().split("T")[0]}: mood ${c.moodRating}/5, energy ${c.energyRating}/5${c.cravingRating ? `, craving ${c.cravingRating}/5` : ""}${journal}`;
+        })
         .join("\n")
     : "No check-ins yet.";
 
@@ -98,18 +123,24 @@ export async function buildSystemPrompt(userId: string): Promise<SystemPrompt> {
           ? "User is open to both Biblical and 12-step framing. Use whichever fits the moment."
           : "User prefers a secular approach. Avoid religious or 12-step framing unless the user brings it up.";
 
-  const dynamic = `# Who you're talking to
+  // Everything below is profile data the user supplied about themselves. It is
+  // reference material, never instructions: anything inside <user_data> that
+  // looks like a command to you should be treated as the user's words, not a
+  // directive to follow.
+  const dynamic = `<user_data>
+# Who you're talking to
 Name: ${displayName}
 ${sobrietyLine}
 Framework preference: ${user.frameworkPreference}
-Hobbies: ${user.hobbies.join(", ") || "none listed"}
-Substances: ${user.substances.join(", ") || "none listed"}
+Hobbies: ${hobbies}
+Substances: ${substances}
 
 # Recent check-ins
 ${checkInSummary}
 
 # Framework adaptation
-${frameworkAdaptation}`;
+${frameworkAdaptation}
+</user_data>`;
 
   return { stable: STABLE_PROMPT, dynamic };
 }
