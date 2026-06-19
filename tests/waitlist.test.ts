@@ -4,10 +4,10 @@ const hoisted = vi.hoisted(() => ({ create: vi.fn() }));
 vi.mock("@/lib/prisma", () => ({
   prisma: {
     waitlist: { create: (...a: unknown[]) => hoisted.create(...a) },
-    // The route runs a per-IP rate-limit check before the insert. findUnique
-    // returns null so every test request starts a fresh window (never limited);
-    // upsert/update are no-op stubs.
-    waitlistRateLimit: {
+    // The route runs a per-IP rate-limit check (shared RateLimit table) before
+    // the insert. findUnique returns null so every test request starts a fresh
+    // window (never limited); upsert/update are no-op stubs.
+    rateLimit: {
       findUnique: () => Promise.resolve(null),
       upsert: () => Promise.resolve({}),
       update: () => Promise.resolve({}),

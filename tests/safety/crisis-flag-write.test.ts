@@ -41,6 +41,13 @@ vi.mock("@/lib/prisma", () => ({
   prisma: {
     chatMessage: { create: (...a: unknown[]) => hoisted.chatMessageCreate(...a) },
     crisisFlag: { create: (...a: unknown[]) => hoisted.crisisFlagCreate(...a) },
+    // Per-user rate-limit check runs before the stream. findUnique returns null
+    // so every test request starts a fresh window (never limited).
+    rateLimit: {
+      findUnique: () => Promise.resolve(null),
+      upsert: () => Promise.resolve({}),
+      update: () => Promise.resolve({}),
+    },
   },
 }));
 

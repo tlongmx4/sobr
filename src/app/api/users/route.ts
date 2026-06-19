@@ -7,6 +7,7 @@ import { createToken, VERIFICATION_TTL_MS } from '@/lib/tokens';
 import { sendVerificationEmail } from '@/lib/email';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs'
+import { BCRYPT_ROUNDS } from '@/lib/passwords';
 import { SobrietyStatus, FrameworkPreference } from "@prisma/client";
 
 const nameSchema = z.string().min(1).max(100);
@@ -85,7 +86,7 @@ export async function POST(request: Request) {
     }
 
     const { password, inviteCode, ...rest } = parsed.data;
-    const passwordHash = await bcrypt.hash(password, 10);
+    const passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
 
     try {
         // Claim a use of the invite code and create the user in one transaction.
@@ -205,7 +206,7 @@ export async function PATCH(request: Request) {
     }
 
     if (password) {
-        data.passwordHash = await bcrypt.hash(password, 10);
+        data.passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
     }
 
     try {

@@ -161,11 +161,12 @@ model InviteCode {
   createdAt DateTime @default(now())
 }
 
-// Per-IP fixed-window counter for the public waitlist endpoint. The IP is
-// salted-hashed (never stored raw) so no PII lands in the table. Rows are
-// disposable: a stale window is overwritten on the next request from that IP.
-model WaitlistRateLimit {
-  ipHash String @id
+// Generic fixed-window rate-limit counter, shared by every throttled endpoint
+// (waitlist, auth email/token flows, chat). `key` is an opaque, caller-built
+// identifier (e.g. "waitlist:<ipHash>" or "chat:<userId>") — never a raw IP or
+// other PII. Rows are disposable: a stale window is overwritten on the next hit.
+model RateLimit {
+  key String @id
   count Int @default(0)
   windowStart DateTime @default(now())
 }
