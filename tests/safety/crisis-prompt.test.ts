@@ -51,3 +51,43 @@ describe("crisis response — resources in the system prompt", () => {
     await expect(buildSystemPrompt("ghost")).rejects.toThrow();
   });
 });
+
+describe("role boundaries — sobr stays in its lane", () => {
+  it("declines professional advice across medical, mental health, legal, and financial", async () => {
+    hoisted.findUnique.mockResolvedValue(baseUser);
+    const { stable } = await buildSystemPrompt("user_1");
+    const lower = stable.toLowerCase();
+
+    expect(lower).toContain("licensed professional"); // names the boundary
+    expect(lower).toContain("therapist"); // mental health / clinical scope
+    expect(lower).toContain("lawyer"); // legal handoff
+    expect(lower).toContain("financial"); // financial handoff
+  });
+
+  it("names recovery-specific medication topics and hands off to a prescriber", async () => {
+    hoisted.findUnique.mockResolvedValue(baseUser);
+    const { stable } = await buildSystemPrompt("user_1");
+
+    expect(stable).toContain("Suboxone"); // MAT named explicitly
+    expect(stable).toContain("naltrexone");
+    expect(stable.toLowerCase()).toContain("prescriber"); // route to the real thing
+  });
+
+  it("forbids false reassurance on physical symptoms", async () => {
+    hoisted.findUnique.mockResolvedValue(baseUser);
+    const { stable } = await buildSystemPrompt("user_1");
+    const lower = stable.toLowerCase();
+
+    // Never minimize: don't tell someone a symptom is "probably fine".
+    expect(lower).toContain("nothing to worry about");
+    expect(lower).toContain("have someone real look at that");
+  });
+
+  it("keeps boundaries subordinate to the crisis flow", async () => {
+    hoisted.findUnique.mockResolvedValue(baseUser);
+    const { stable } = await buildSystemPrompt("user_1");
+
+    // The boundary section must yield to crisis, not deflect an emergency.
+    expect(stable.toLowerCase()).toContain("overrides the crisis flow");
+  });
+});
