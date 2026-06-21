@@ -32,6 +32,8 @@ On top of that, a lightweight classifier (Claude Haiku) runs in parallel with th
 
 Crisis flags are deliberately ephemeral. They store only risk metadata (severity, category, classifier confidence and model version) plus a reference to the message, never a copy of its content, and a daily job purges anything older than 14 days. They cascade-delete with the user, so right-to-be-forgotten still works end to end.
 
+Beyond crisis handling, the system prompt keeps sobr in its lane: it declines professional advice (medical and medications including MAT, physical-symptom reassurance, mental-health/therapy, legal, financial) and warmly defers to qualified people and real resources, while never going cold during an actual emergency.
+
 ## Tech stack
 
 - **Framework:** Next.js 16 (App Router, Turbopack)
